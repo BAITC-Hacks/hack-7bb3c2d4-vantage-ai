@@ -32,18 +32,22 @@ consolidation above them, in seconds rather than weeks.
 _Updated at each commit. Only what runs is listed here._
 
 **Working end to end**
-- One-command pipeline from raw parquet to the three required CSVs, currently **1.1 s** against the
+- One-command pipeline from raw parquet to the three required CSVs, currently **1.6 s** against the
   5-minute limit.
 - All **2,248** declared nodes receive a role, a role score and evidence containing numbers.
 - Integrity report measuring every declared data limitation, written to `out/integrity.json`.
-- Clustering, with a cluster id on every node, plus weakly connected components as a second view.
+- Clustering with a cluster id on every node, a written hypothesis per cluster, and weakly connected
+  components as a second structural view.
 - Ranked priority list of 25 nodes with written justification.
-- Review screen with search by gid and a per-node card.
+- **Review screen**: network laid out by hop with flow direction, role colouring, search by gid,
+  per-client card, and the chain of clients leading into any selected one.
+- **Return flows**: 177 reciprocal pairs and 1,541 closed loops of six hops or fewer.
+- **Resilience**: what happens to the network as the top ranked clients are removed.
+- **Centrality disagreement**: where a plain PageRank ranking and the evidence rules diverge.
 
 **Not yet implemented**
-- Network diagram with flow direction and role highlighting.
-- Cluster hypotheses (`clusters.csv` `hypothesis` column is currently empty).
-- Cycle and reciprocity detection, network resilience under node removal.
+- Threshold tuning against the data; current values are first-cut.
+- Temporal patterns beyond dwell time.
 
 ## 4. How the solution works
 
@@ -103,7 +107,11 @@ Expected: three files in `out/`, `nodes_roles.csv` with exactly 2,248 rows, `top
 least 20, and a completion time well under five minutes. The run asserts all three and fails loudly
 otherwise.
 
-_A worked example for two or three specific gids will be added here._
+**Worked example.** Run the pipeline, start the review screen, and paste
+`100000003684369100` into the search box. It is one of the 81 clients already known to the
+investigation, assessed as a distributor on the rule `out_deg >= 20`: it sends 8,588,655 KZT to 62
+receivers over 67 transfers while receiving 3,848,436 KZT from 24. The chart highlights the 164
+clients on the routes running through it.
 
 ## 9. Data and integrations
 
@@ -124,7 +132,7 @@ The case specification declares these, and the pipeline measures each one rather
 | Outbound transfers only | | A node's true balance is not computable and is not claimed |
 | Seed inflow understated | 19 seeds in no edge, 31 with no outgoing | Seeds are never scored on inflow |
 | 5,000 KZT collection floor | | Structuring below the floor is undetectable and is not claimed |
-| Network is not monolithic | 16 components in the edge graph, 35 including isolated nodes | Component id retained alongside cluster id |
+| Network is not monolithic | 16 components in the edge graph, 35 once the 19 transfer-less seeds are counted as their own | Component id retained alongside cluster id |
 | No client attributes | | Structure and amounts only |
 | No ground truth | | Roles are justified by stated rules, not measured against labels |
 

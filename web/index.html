@@ -1,81 +1,298 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8">
-<title>Money Graph review</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Money Graph</title>
 <style>
-  :root { --line:#d9dade; --muted:#6b6f76; --bg:#fff; --fg:#17181a; --accent:#1f6feb; }
-  body { font:15px/1.5 system-ui,-apple-system,sans-serif; margin:0; color:var(--fg); background:var(--bg); }
-  header { padding:1rem 1.5rem; border-bottom:1px solid var(--line); display:flex; gap:1rem; align-items:baseline; }
-  h1 { font-size:1.05rem; margin:0; font-weight:600; }
-  .muted { color:var(--muted); font-size:.85rem; }
-  main { display:grid; grid-template-columns:22rem 1fr; min-height:calc(100vh - 3.6rem); }
-  aside { border-right:1px solid var(--line); padding:1rem 1.25rem; overflow:auto; }
-  section { padding:1rem 1.5rem; overflow:auto; }
-  input { width:100%; padding:.5rem .6rem; border:1px solid var(--line); border-radius:6px; font:inherit; }
-  table { border-collapse:collapse; width:100%; font-size:.86rem; }
-  th,td { text-align:left; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
-  th { font-weight:600; color:var(--muted); font-size:.78rem; text-transform:uppercase; letter-spacing:.03em; }
-  tr:hover td { background:#f6f7f9; cursor:pointer; }
-  .card { border:1px solid var(--line); border-radius:8px; padding:1rem; margin-bottom:1rem; }
-  .k { color:var(--muted); font-size:.8rem; }
-  .v { font-variant-numeric:tabular-nums; }
-  code { background:#f2f3f5; padding:.1rem .3rem; border-radius:4px; }
+:root{
+  --bg:#0f1115; --panel:#161920; --line:#262b36; --fg:#e8eaed; --muted:#8b93a1;
+  --accent:#4a9eff; --warn:#f0a020; --bad:#e5484d; --ok:#3fb950;
+  --consolidator:#e5484d; --coordinator:#f0a020; --transit:#4a9eff;
+  --distributor:#a371f7; --terminal:#3fb950; --peripheral:#5a6270; --unclassified:#3a4050;
+}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--fg)}
+header{display:flex;align-items:baseline;gap:1.25rem;padding:.7rem 1.1rem;border-bottom:1px solid var(--line)}
+h1{font-size:.95rem;margin:0;font-weight:650;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:.8rem}
+main{display:grid;grid-template-columns:21rem 1fr;height:calc(100vh - 3rem)}
+aside{border-right:1px solid var(--line);overflow:auto;padding:.9rem 1rem;background:var(--panel)}
+.stage{display:flex;flex-direction:column;min-width:0}
+#cv{flex:1;display:block;width:100%;background:var(--bg);cursor:crosshair}
+.tabs{display:flex;gap:.25rem;border-top:1px solid var(--line);padding:.4rem .6rem 0;background:var(--panel)}
+.tab{padding:.35rem .7rem;font-size:.8rem;color:var(--muted);border:1px solid transparent;border-bottom:none;border-radius:6px 6px 0 0;cursor:pointer}
+.tab[aria-selected=true]{color:var(--fg);background:var(--bg);border-color:var(--line)}
+.pane{display:none;height:15rem;overflow:auto;padding:.6rem .9rem;background:var(--bg);border-top:1px solid var(--line)}
+.pane[data-on]{display:block}
+input{width:100%;padding:.5rem .6rem;border:1px solid var(--line);border-radius:7px;background:#0c0e12;color:var(--fg);font:inherit}
+input::placeholder{color:#5a6270}
+table{border-collapse:collapse;width:100%;font-size:.8rem}
+th,td{text-align:left;padding:.3rem .5rem;border-bottom:1px solid var(--line);white-space:nowrap}
+td.wrap{white-space:normal;color:var(--muted)}
+th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;position:sticky;top:0;background:var(--bg)}
+tbody tr:hover td{background:#1a1e27;cursor:pointer}
+.num{font-variant-numeric:tabular-nums;text-align:right}
+.k{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;margin-top:.75rem}
+.v{font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:.1rem .45rem;border-radius:999px;font-size:.72rem;font-weight:600}
+.ev{background:#0c0e12;border:1px solid var(--line);border-radius:7px;padding:.55rem .65rem;font-size:.8rem;color:#c8cdd6;margin-top:.3rem}
+.legend{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+.legend span{font-size:.7rem;color:var(--muted);display:flex;align-items:center;gap:.25rem}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.hint{color:var(--muted);font-size:.75rem;margin-top:.5rem}
+.stat{display:flex;justify-content:space-between;font-size:.8rem;padding:.15rem 0}
+.stat b{font-variant-numeric:tabular-nums;font-weight:600}
 </style>
+
 <header>
   <h1>Money Graph</h1>
-  <span class="muted" id="meta">loading…</span>
+  <span class="sub" id="meta">loading…</span>
+  <span class="sub" style="margin-left:auto" id="hopLabels"></span>
 </header>
+
 <main>
   <aside>
-    <label class="k" for="q">Find a client by gid</label>
-    <input id="q" placeholder="e.g. 100000002224132100" autocomplete="off">
+    <label class="k" for="q" style="margin-top:0">Find a client</label>
+    <input id="q" placeholder="paste a gid" autocomplete="off" spellcheck="false">
     <div id="card"></div>
+    <div class="k">Roles</div>
+    <div class="legend" id="legend"></div>
+    <div class="hint">Left to right is distance from the clients already known to the investigation. Every arrow points the way the money moved.</div>
   </aside>
-  <section>
-    <h2 style="font-size:.95rem;margin:.2rem 0 .8rem">Investigation priority</h2>
-    <table id="top"><thead><tr><th>#</th><th>gid</th><th>role</th><th>score</th><th>why</th></tr></thead><tbody></tbody></table>
-  </section>
+
+  <div class="stage">
+    <canvas id="cv"></canvas>
+    <div class="tabs" role="tablist">
+      <div class="tab" role="tab" data-p="top" aria-selected="true">Investigate first</div>
+      <div class="tab" role="tab" data-p="dis">Where centrality misleads</div>
+      <div class="tab" role="tab" data-p="res">If we act on this</div>
+      <div class="tab" role="tab" data-p="clu">Groups</div>
+      <div class="tab" role="tab" data-p="loop">Return flows</div>
+    </div>
+    <div class="pane" data-p="top" data-on></div>
+    <div class="pane" data-p="dis"></div>
+    <div class="pane" data-p="res"></div>
+    <div class="pane" data-p="clu"></div>
+    <div class="pane" data-p="loop"></div>
+  </div>
 </main>
+
 <script type="module">
-// TODO replace with the network diagram. The gid search and the node card are the two
-// things the jury tests directly, so they come first.
-const csv = async (p) => {
-  const t = await (await fetch(p)).text();
-  const [h, ...rows] = t.trim().split("\n");
-  const cols = h.split(",");
-  return rows.map(r => {
-    const v = r.match(/("([^"]|"")*"|[^,]*)/g).filter((_, i) => i % 2 === 0);
-    return Object.fromEntries(cols.map((c, i) => [c, (v[i] ?? "").replace(/^"|"$/g, "").replace(/""/g, '"')]));
-  });
-};
-const nodes = await csv("../out/nodes_roles.csv");
-const top = await csv("../out/top_nodes.csv");
-const by = new Map(nodes.map(n => [n.gid, n]));
-document.getElementById("meta").textContent = `${nodes.length} nodes · ${top.length} ranked`;
-
-const tb = document.querySelector("#top tbody");
-tb.innerHTML = top.map(r => `<tr data-gid="${r.gid}"><td>${r.rank}</td><td>${r.gid}</td><td>${r.role}</td><td class="v">${(+r.priority_score).toFixed(3)}</td><td>${r.why}</td></tr>`).join("");
-tb.addEventListener("click", e => { const tr = e.target.closest("tr"); if (tr) show(tr.dataset.gid); });
-
+const D = await (await fetch("../out/graph.json")).json();
+const byId = new Map(D.nodes.map(n => [String(n.id), n]));
+const css = k => getComputedStyle(document.documentElement).getPropertyValue("--" + k).trim();
+const COL = Object.fromEntries(D.meta.roleOrder.map(r => [r, css(r)]));
 const fmt = n => Number(n).toLocaleString("en-GB", { maximumFractionDigits: 0 });
-function show(gid) {
-  const n = by.get(String(gid));
-  const el = document.getElementById("card");
-  if (!n) { el.innerHTML = `<p class="muted">No client with gid ${gid} in this dataset.</p>`; return; }
-  el.innerHTML = `<div class="card">
-    <div class="k">gid</div><div class="v">${n.gid}</div>
-    <div class="k" style="margin-top:.6rem">role</div><div><b>${n.role}</b> <span class="muted">score ${(+n.role_score).toFixed(2)}</span></div>
-    <div class="k" style="margin-top:.6rem">why</div><div>${n.evidence}</div>
-    <div class="k" style="margin-top:.6rem">flows</div>
-    <div class="v">in ${fmt(n.in_kzt)} KZT from ${n.in_deg} · out ${fmt(n.out_kzt)} KZT to ${n.out_deg}</div>
-    <div class="k" style="margin-top:.6rem">position</div>
-    <div class="v">hop ${n.depth}${n.is_seed === "True" ? " · seed" : ""} · cluster ${n.cluster_id} · component ${n.component_id}</div>
-  </div>`;
+
+document.getElementById("meta").textContent =
+  `${fmt(D.meta.nodes)} clients · ${fmt(D.meta.edges)} transfer pairs · ${fmt(D.meta.turnover)} KZT · ${D.meta.seeds} known to the investigation`;
+document.getElementById("legend").innerHTML = D.meta.roleOrder
+  .filter(r => D.meta.roleCounts[r])
+  .map(r => `<span><i class="dot" style="background:${COL[r]}"></i>${r} ${D.meta.roleCounts[r]}</span>`).join("");
+
+/* ---------- layout: hop on x, slot on y. No force simulation, no hairball. ---------- */
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+let W = 0, H = 0, DPR = Math.min(devicePixelRatio || 1, 2);
+const PAD = { l: 74, r: 70, t: 26, b: 22 };
+const maxHop = Math.max(...D.nodes.map(n => n.hop));
+
+function resize() {
+  const r = cv.getBoundingClientRect();
+  W = r.width; H = r.height;
+  cv.width = W * DPR; cv.height = H * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  for (const n of D.nodes) {
+    // Deterministic spread inside the hop so a band of 789 clients reads as a
+    // population rather than a solid bar. Position is stable across runs.
+    // Ids arrive as strings because they are too long for a JS number. Hash the last
+    // digits for a stable spread inside the hop.
+    const jig = ((+String(n.id).slice(-4) % 997) / 997 - 0.5);
+    const band = Math.min(58, (W - PAD.l - PAD.r) / (maxHop + 1) * 0.55);
+    n.px = PAD.l + (W - PAD.l - PAD.r) * (maxHop ? n.hop / maxHop : 0.5) + jig * band;
+    n.py = PAD.t + (H - PAD.t - PAD.b) * n.y;
+    n.r = n.seed ? 4.2 : 2 + Math.min(3.4, Math.log10(1 + n.inKzt + n.outKzt) * 0.55);
+  }
+  draw();
 }
+new ResizeObserver(resize).observe(cv);
+
+let selected = null, hovered = null, highlightEdges = new Set(), highlightNodes = new Set();
+
+function chainsFor(id) {
+  // Follow the money backwards to whichever known client it came from.
+  const inc = new Map();
+  for (const e of D.edges) { if (!inc.has(e.t)) inc.set(e.t, []); inc.get(e.t).push(e); }
+  const nodes = new Set([id]), edges = new Set();
+  let frontier = [id];
+  for (let hop = 0; hop < 5 && frontier.length; hop++) {
+    const next = [];
+    for (const cur of frontier) for (const e of (inc.get(cur) || [])) {
+      edges.add(e);
+      if (!nodes.has(e.s)) { nodes.add(e.s); next.push(e.s); }
+    }
+    frontier = next;
+  }
+  for (const e of D.edges) if (e.s === id) { edges.add(e); nodes.add(e.t); }
+  return { nodes, edges };
+}
+
+function select(id) {
+  const n = byId.get(String(id).trim());
+  if (!n) { document.getElementById("card").innerHTML =
+    `<div class="ev">No client with that gid in this extract.</div>`; return; }
+  selected = n;
+  const h = chainsFor(n.id);
+  highlightNodes = h.nodes; highlightEdges = h.edges;
+  const pct = n.priority != null ? n.priority : 0;
+  document.getElementById("card").innerHTML = `
+    <div class="k">Client</div><div class="v" style="font-size:.95rem">${n.id}</div>
+    <div class="k">Assessed as</div>
+    <div><span class="pill" style="background:${COL[n.role]}22;color:${COL[n.role]}">${n.role}</span>
+      <span class="sub">confidence ${n.roleScore.toFixed(2)}</span></div>
+    <div class="k">Why</div><div class="ev">${n.evidence}</div>
+    <div class="k">Money</div>
+    <div class="stat"><span>received</span><b>${fmt(n.inKzt)} KZT from ${n.inDeg}</b></div>
+    <div class="stat"><span>sent on</span><b>${fmt(n.outKzt)} KZT to ${n.outDeg}</b></div>
+    <div class="k">Position</div>
+    <div class="stat"><span>hops from a known client</span><b>${n.hop}${n.seed ? " (known)" : ""}</b></div>
+    <div class="stat"><span>group</span><b>${n.cluster}</b></div>
+    <div class="stat"><span>investigation priority</span><b>${pct.toFixed(3)}</b></div>
+    <div class="hint">${h.nodes.size - 1} clients sit on the routes into this one. They are highlighted on the chart.</div>`;
+  draw();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  // hop guides
+  ctx.font = "11px ui-sans-serif,system-ui"; ctx.textAlign = "center";
+  for (let h = 0; h <= maxHop; h++) {
+    const x = PAD.l + (W - PAD.l - PAD.r) * (maxHop ? h / maxHop : .5);
+    ctx.strokeStyle = "#1b1f28"; ctx.beginPath();
+    ctx.moveTo(x, PAD.t - 8); ctx.lineTo(x, H - PAD.b); ctx.stroke();
+    ctx.fillStyle = "#6b7280";
+    ctx.fillText(h === 0 ? "known clients" : `hop ${h}`, x, PAD.t - 12);
+  }
+  const dim = highlightEdges.size > 0;
+  for (const e of D.edges) {
+    const a = byId.get(e.s), b = byId.get(e.t);
+    if (!a || !b) continue;
+    const on = highlightEdges.has(e);
+    ctx.strokeStyle = on ? "rgba(74,158,255,.85)" : (dim ? "rgba(90,98,112,.10)" : "rgba(90,98,112,.22)");
+    ctx.lineWidth = on ? 1.5 : .7;
+    ctx.beginPath();
+    const mx = (a.px + b.px) / 2;
+    ctx.moveTo(a.px, a.py); ctx.bezierCurveTo(mx, a.py, mx, b.py, b.px, b.py); ctx.stroke();
+    if (on) arrow(a, b);
+  }
+  for (const n of D.nodes) {
+    const on = !dim || highlightNodes.has(n.id);
+    ctx.globalAlpha = on ? 1 : .18;
+    ctx.fillStyle = COL[n.role] || "#5a6270";
+    ctx.beginPath(); ctx.arc(n.px, n.py, n.r, 0, 6.2832); ctx.fill();
+    if (n.seed) { ctx.strokeStyle = "#e8eaed"; ctx.lineWidth = .9; ctx.stroke(); }
+  }
+  ctx.globalAlpha = 1;
+  if (selected) {
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(selected.px, selected.py, selected.r + 4.5, 0, 6.2832); ctx.stroke();
+  }
+  if (hovered) {
+    ctx.fillStyle = "#e8eaed"; ctx.textAlign = "left"; ctx.font = "11px ui-sans-serif";
+    ctx.fillText(`${hovered.id} · ${hovered.role}`, hovered.px + 8, hovered.py - 7);
+  }
+}
+function arrow(a, b) {
+  const dx = b.px - a.px, dy = b.py - a.py, L = Math.hypot(dx, dy) || 1;
+  const ux = dx / L, uy = dy / L, tipX = b.px - ux * (b.r + 2), tipY = b.py - uy * (b.r + 2);
+  ctx.fillStyle = "rgba(74,158,255,.9)";
+  ctx.beginPath(); ctx.moveTo(tipX, tipY);
+  ctx.lineTo(tipX - ux * 6 - uy * 3, tipY - uy * 6 + ux * 3);
+  ctx.lineTo(tipX - ux * 6 + uy * 3, tipY - uy * 6 - ux * 3);
+  ctx.closePath(); ctx.fill();
+}
+function pick(mx, my) {
+  let best = null, bd = 81;
+  for (const n of D.nodes) {
+    const d = (n.px - mx) ** 2 + (n.py - my) ** 2;
+    if (d < bd) { bd = d; best = n; }
+  }
+  return best;
+}
+cv.addEventListener("mousemove", e => {
+  const r = cv.getBoundingClientRect();
+  const h = pick(e.clientX - r.left, e.clientY - r.top);
+  if (h !== hovered) { hovered = h; cv.style.cursor = h ? "pointer" : "crosshair"; draw(); }
+});
+cv.addEventListener("click", () => { if (hovered) { document.getElementById("q").value = hovered.id; select(hovered.id); } });
 document.getElementById("q").addEventListener("input", e => {
   const v = e.target.value.trim();
-  if (v.length >= 4) show(v);
+  if (v.length >= 6) select(v);
+  else { selected = null; highlightEdges = new Set(); highlightNodes = new Set(); draw(); }
 });
-if (top.length) show(top[0].gid);
+
+/* ---------------------------- tables ---------------------------- */
+const pane = p => document.querySelector(`.pane[data-p="${p}"]`);
+const tbl = (cols, rows, onclick) => `<table><thead><tr>${
+  cols.map(c => `<th${c.num ? ' class="num"' : ""}>${c.h}</th>`).join("")
+}</tr></thead><tbody>${rows.map(r => `<tr data-gid="${r._gid ?? ""}">${
+  cols.map(c => `<td class="${c.num ? "num " : ""}${c.wrap ? "wrap" : ""}">${c.f(r)}</td>`).join("")
+}</tr>`).join("")}</tbody></table>`;
+
+pane("top").innerHTML = tbl(
+  [{ h: "#", f: r => r.rank, num: 1 }, { h: "client", f: r => r.gid },
+   { h: "assessed as", f: r => `<span style="color:${COL[r.role]}">${r.role}</span>` },
+   { h: "priority", f: r => (+r.priority_score).toFixed(3), num: 1 },
+   { h: "reason", f: r => r.why, wrap: 1 }],
+  D.top.map(r => ({ ...r, _gid: r.gid })));
+
+pane("dis").innerHTML =
+  `<p class="hint" style="margin:0 0 .5rem">A plain centrality ranking promotes nodes that flow passes through.
+   It cannot tell a client collecting from many payers apart from a business paying many suppliers.
+   These are the nodes it puts near the top that the evidence rules push down, and why.</p>` +
+  tbl([{ h: "client", f: r => r.gid },
+       { h: "by centrality", f: r => "#" + r.rank_pagerank, num: 1 },
+       { h: "by evidence", f: r => "#" + r.rank_priority, num: 1 },
+       { h: "moved", f: r => "+" + r.rank_gap, num: 1 },
+       { h: "assessed as", f: r => `<span style="color:${COL[r.role]}">${r.role}</span>` },
+       { h: "why", f: r => r.evidence, wrap: 1 }],
+      (D.demoted || []).map(r => ({ ...r, _gid: r.gid })));
+
+pane("res").innerHTML =
+  `<p class="hint" style="margin:0 0 .5rem">A ranking is only worth having if acting on it changes the network.
+   Removing the top ranked clients in order:</p>` +
+  tbl([{ h: "clients removed", f: r => r.removed, num: 1 },
+       { h: "largest group left", f: r => fmt(r.largest_component), num: 1 },
+       { h: "separate fragments", f: r => fmt(r.n_components), num: 1 },
+       { h: "still reachable from known clients", f: r => fmt(r.nodes_reachable_from_seeds), num: 1 }],
+      D.resilience || []);
+
+pane("clu").innerHTML = tbl(
+  [{ h: "group", f: r => r.cluster_id, num: 1 },
+   { h: "clients", f: r => r.n_nodes, num: 1 },
+   { h: "known", f: r => r.n_seed, num: 1 },
+   { h: "moving inside", f: r => fmt(r.sum_kzt_internal) + " KZT", num: 1 },
+   { h: "what it looks like", f: r => r.hypothesis, wrap: 1 }],
+  D.clusters || []);
+
+pane("loop").innerHTML =
+  `<p class="hint" style="margin:0 0 .5rem">Money returning to a client it came from. Ordinary trade rarely does this.</p>` +
+  tbl([{ h: "client", f: r => r.gid_a }, { h: "and", f: r => r.gid_b },
+       { h: "one way", f: r => fmt(r.a_to_b_kzt), num: 1 },
+       { h: "back", f: r => fmt(r.b_to_a_kzt), num: 1 },
+       { h: "returned", f: r => (r.returned_share * 100).toFixed(0) + "%", num: 1 },
+       { h: "transfers", f: r => r.n_tx, num: 1 }],
+      (D.reciprocal || []).map(r => ({ ...r, _gid: r.gid_a })));
+
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t));
+  document.querySelectorAll(".pane").forEach(p => p.toggleAttribute("data-on", p.dataset.p === t.dataset.p));
+});
+document.addEventListener("click", e => {
+  const tr = e.target.closest("tr[data-gid]");
+  if (tr && tr.dataset.gid) { document.getElementById("q").value = tr.dataset.gid; select(tr.dataset.gid); }
+});
+
+resize();
+if (D.top.length) select(D.top[0].gid);
 </script>
 </html>

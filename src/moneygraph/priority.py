@@ -33,6 +33,6 @@ def rank(feats: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     top.insert(0, "rank", range(1, len(top) + 1))
     top["why"] = top.apply(
         lambda r: (f"{r.role}: receives from {int(r.in_deg)} payers, {r.in_kzt:,.0f} KZT in, "
-                   f"{r.out_kzt:,.0f} KZT out; authority={r.authority_score:.4f}, "
-                   f"pagerank={r.pagerank:.5f}"), axis=1)
+                   f"{r.out_kzt:,.0f} KZT out; collector score {max(r.authority_score, 0):.4f}, "
+                   f"flow share {r.pagerank:.5f}"), axis=1)
     return df, top[["rank", "gid", "role", "priority_score", "why"]]
