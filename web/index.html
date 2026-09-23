@@ -18,7 +18,7 @@
   --bg:#F7F8F8; --sunk:#EFF1F2; --panel:#FFFFFF; --strong:#E9EBEE;
   --line:#DFE2E6; --line-soft:#ECEEF1;
   --fg:#0B0C0D; --text:#141619; --muted:#4B4F57; --steel:#7A7F88;
-  --amber:#D9860B; --amber-soft:rgba(217,134,11,.14);
+  --amber:#F0800A; --amber-soft:rgba(240,128,10,.16);
   --primary:#0F1011; --secondary:#ECEEF1; --focus:rgba(217,134,11,.55);
   --display:-apple-system,"SF Pro Display","Segoe UI Variable Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -39,7 +39,7 @@
   --bg:#010102; --sunk:#08090A; --panel:#0F1011; --strong:#18191A;
   --line:#23252A; --line-soft:#1A1B1F;
   --fg:#FFFFFF; --text:#E6E9EE; --muted:#A3A8B1; --steel:#6E737C;
-  --amber:#F0A72E; --amber-soft:rgba(240,167,46,.16);
+  --amber:#FF9A1F; --amber-soft:rgba(255,154,31,.2);
   --primary:#F7F8F8; --secondary:#141516; --focus:rgba(240,167,46,.6);
   --consolidator:#FF5A63; --coordinator:#A48BFF; --transit:#5B9DFF; --distributor:#F06CBF;
   --terminal:#7D97B8; --peripheral:#A6958A;
@@ -77,20 +77,20 @@ b,strong{color:var(--fg);font-weight:600}
 
 .rail{position:fixed;top:var(--top);bottom:0;left:0;width:var(--rail);border-right:1px solid var(--line);background:var(--bg);
       padding:.6rem .5rem;overflow:auto;display:flex;flex-direction:column;gap:2px}
-.rail a{display:grid;grid-template-columns:1.6rem 1fr;align-items:baseline;gap:.5rem;padding:.45rem .6rem;color:var(--muted);border-radius:var(--r-md)}
-.rail a i{font:400 .7rem/1 var(--mono);font-style:normal;color:var(--steel)}
-.rail a span{font-size:.9rem;font-weight:600;line-height:1.25}
+.rail a{display:grid;grid-template-columns:1.6rem 1fr;align-items:baseline;gap:.5rem;padding:.6rem .8rem;color:var(--text);border-radius:999px}
+.rail a i{font:700 .75rem/1 var(--mono);font-style:normal;color:var(--steel)}
+.rail a span{font-size:.95rem;font-weight:700;line-height:1.25;color:var(--fg)}
 .rail a small{grid-column:2;font-size:.75rem;color:var(--steel);font-weight:400;line-height:1.3}
-.rail a:hover{background:var(--row-hover);color:var(--text)}
-.rail a[aria-current=true]{background:var(--strong);color:var(--fg);box-shadow:inset 2px 0 0 var(--amber)}
-.rail a[aria-current=true] i{color:var(--amber)}
+.rail a:hover{background:var(--strong)}
+.rail a[aria-current=true]{background:var(--amber);color:#0B0C0D;box-shadow:none}
+.rail a[aria-current=true] span,.rail a[aria-current=true] i,.rail a[aria-current=true] small{color:#0B0C0D}
 .rail .foot{margin-top:auto;padding:1rem .6rem 0;font-size:.7rem;color:var(--steel);line-height:1.5}
 
 main{margin:var(--top) 0 0 var(--rail);min-height:calc(100vh - var(--top))}
 section.page{display:none;padding:2rem 2.4rem 4rem;max-width:84rem}
 section.page[data-on]{display:block}
 .ph{display:flex;align-items:baseline;gap:.8rem;margin:0 0 .4rem}
-.ph i{font:400 .75rem/1 var(--mono);font-style:normal;color:var(--amber);letter-spacing:.06em}
+.ph i{font:700 .8rem/1 var(--mono);font-style:normal;color:var(--amber);letter-spacing:.06em}
 .ph h2{margin:0;font:700 2rem/1.15 var(--display);letter-spacing:-.025em;color:var(--fg)}
 .lede{color:var(--text);max-width:64ch;line-height:1.55;margin:0 0 1.6rem;font-size:1.0625rem}
 .lede b{color:var(--fg);font-weight:600}
@@ -100,7 +100,8 @@ hr.rule{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
 .ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;margin:0 0 1.8rem}
 .ledger div{padding:1.1rem 1.3rem 1rem;background:var(--panel)}
 .ledger b{display:block;font:700 2.9rem/1.05 var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--fg)}
-.ledger .amber b{color:var(--amber)}
+.ledger .amber{background:var(--amber)}
+.ledger .amber b,.ledger .amber span{color:#0B0C0D}
 .ledger span{display:block;color:var(--muted);font-size:.78rem;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-top:.45rem;line-height:1.35}
 
 /* ------------------------------ start cards ------------------------------ */
@@ -190,6 +191,14 @@ canvas.map{display:block;width:100%;height:34rem;cursor:default}
 .ask .w{font-size:.875rem;color:var(--text);line-height:1.45;margin-top:.3rem}
 .ask .f{font-size:.8125rem;color:var(--muted);margin-top:.3rem}
 .ask .f b{color:var(--fg);font-family:var(--mono);font-weight:400}
+.dash{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin:0 0 1rem}
+.dash .t{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--panel);padding:.9rem 1.1rem;min-width:0}
+.dash .t .l{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.dash .t .v{font:700 1.9rem/1.1 var(--display);letter-spacing:-.03em;color:var(--fg);font-variant-numeric:tabular-nums;margin-top:.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash .t .s{font-size:.8125rem;color:var(--muted);margin-top:.25rem}
+.dash .t.hot{background:var(--amber);border-color:var(--amber)}
+.dash .t.hot .l,.dash .t.hot .v,.dash .t.hot .s{color:#0B0C0D}
+.dash .t.role{border-left:5px solid var(--pc)}
 .hero{display:grid;grid-template-columns:1.5fr 1fr;gap:1rem;margin:0 0 1.4rem}
 .hero>div{border:1px solid var(--line);border-radius:var(--r-xl);background:var(--panel);overflow:hidden;min-width:0}
 .hero .cap{padding:.55rem .9rem .6rem;font-size:.8125rem;color:var(--muted);border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap}
@@ -208,10 +217,11 @@ canvas.map{display:block;width:100%;height:34rem;cursor:default}
   :root{--rail:0px}
   .rail{position:static;width:auto;display:flex;flex-direction:row;gap:2px;overflow-x:auto;padding:.3rem .5rem;border-right:0;border-bottom:1px solid var(--line);margin-top:var(--top)}
   .rail a{grid-template-columns:auto 1fr;white-space:nowrap;border-radius:var(--r-md)}
-  .rail a[aria-current=true]{box-shadow:inset 0 -2px 0 var(--amber)}
+  .rail a[aria-current=true]{box-shadow:none}
   .rail a small,.rail .foot{display:none}
   main{margin-top:0}
   .explore,.grid2,.hero{grid-template-columns:1fr}
+  .dash{grid-template-columns:1fr 1fr}
   section.page{padding:1.4rem 1.2rem 3rem}
   .find input{width:11rem}
   .case{display:none}
@@ -285,6 +295,7 @@ canvas.map{display:block;width:100%;height:34rem;cursor:default}
   <section class="page" id="p-account">
     <div class="ph"><i>03</i><h2 data-t="One account"></h2></div>
     <p class="lede" data-t="Pick an account from any list, or type its id above. The map shows the money around it: who paid it on the left, who it paid on the right. Every arrow points the way the money moved."></p>
+    <div class="dash" id="dash-a"></div>
     <div class="explore">
       <div class="mapwrap">
         <div class="mapbar"><div class="what" id="what-a"></div>
@@ -543,6 +554,11 @@ function renderAccount(n) {
   const id = String(n.id), k = KNOW.get(id), rk = RANK.get(id);
   const forms = (FORMS_OF.get(id) || []).map(f => FORM_BY_ID.get(f)).filter(Boolean).sort((a, b) => a.rank - b.rank);
   const prev = rk ? TOP[rk.rank - 2] : null, next = rk ? TOP[rk.rank] : null;
+  $("dash-a").innerHTML = `
+    <div class="t"><div class="l">${t("received")}</div><div class="v">${kzt(n.inKzt)}</div><div class="s">${t("from")} ${plural(n.inDeg, "account", "accounts")}</div></div>
+    <div class="t"><div class="l">${t("sent")}</div><div class="v">${kzt(n.outKzt)}</div><div class="s">${t("to")} ${plural(n.outDeg, "account", "accounts")}</div></div>
+    <div class="t hot"><div class="l">${t("Investigation priority")}</div><div class="v">${(n.priority ?? 0).toFixed(3)}</div><div class="s">${rk ? `#${rk.rank} ${t("of")} ${fmt(D.nodes.length)}` : sub(t("not in the top {n}"), { n: TOP.length })}</div></div>
+    <div class="t role" style="--pc:${roleCol(n.role)}"><div class="l">${t("Assessed as")}</div><div class="v" style="color:${roleCol(n.role)}">${esc(roleName(n.role))}</div><div class="s">${t("rule confidence")} ${n.roleScore.toFixed(2)} · ${sub(t("hop {n}"), { n: n.hop })}${n.seed ? ` · ${t("known client")}` : ""}</div></div>`;
   $("panel-a").innerHTML = `
     ${rk ? `<div class="pn"><a href="#account/${prev ? esc(prev.gid) : ""}" aria-disabled="${!prev}">← #${prev ? prev.rank : ""}</a><span class="empty" style="align-self:center">${t("priority")} #${rk.rank}</span><a href="#account/${next ? esc(next.gid) : ""}" aria-disabled="${!next}">#${next ? next.rank : ""} →</a></div>` : ""}
     <div class="k">${t("This account")}</div><div class="gid">${esc(id)}</div>${n.seed ? `<div style="margin-top:.3rem"><span class="pill" style="--pc:var(--amber)">${t("known client")}</span></div>` : ""}
