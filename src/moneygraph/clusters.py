@@ -43,7 +43,10 @@ def assign(d: Dataset, feats: pd.DataFrame, seed: int = 42) -> tuple[pd.DataFram
             "n_seed": int(grp.is_seed.sum()),
             "sum_kzt_internal": round(internal, 2),
             "top_gids": " ".join(str(x) for x in top),
-            # TODO replace with a real hypothesis per cluster before submission.
+            # Declared here so the column exists in a fixed position and left empty on
+            # purpose: a hypothesis needs the role mix of the cluster, which is not known
+            # until roles and communities have both been assigned. hypotheses.describe
+            # fills every row from that cluster's own figures once run.py has both.
             "hypothesis": "",
         })
     clusters = pd.DataFrame(rows).sort_values(

@@ -4,8 +4,5 @@ __pycache__/
 venv/
 .env
 .DS_Store
-out/
 .idea/
 .ipynb_checkpoints/
-.vscode/
-.pytest_cache/

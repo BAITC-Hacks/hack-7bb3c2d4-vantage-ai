@@ -12,7 +12,11 @@ from .dataio import Dataset
 
 
 def reciprocal_pairs(d: Dataset) -> pd.DataFrame:
-    """Pairs that send money both ways. Money going back where it came from is not ordinary trade."""
+    """Pairs that send money both ways.
+
+    Money going back where it came from is worth checking against what each leg was said to
+    be for. Whether that is ordinary is a question for the analyst, not for this function.
+    """
     g = d.graph
     rows = []
     for a, b in g.edges():
@@ -88,8 +92,15 @@ def resilience(d: Dataset, ranked: list[int], steps: tuple[int, ...] = (0, 1, 3,
 
 
 def _reachable_from_seeds(g: nx.DiGraph, seeds: set[int]) -> int:
+    """Accounts the money can still be followed to, counting the seeds themselves.
+
+    nx.descendants excludes its own start node, so counting descendants alone would answer
+    a different question from the one the column name asks: a seed still standing is still
+    reachable from the seed set, and removing one should show up as a fall of one here.
+    """
     seen: set[int] = set()
     for s in seeds:
         if s in g:
-            seen |= nx.descendants(g, s)
+            seen.add(int(s))
+            seen |= {int(x) for x in nx.descendants(g, s)}
     return len(seen)

@@ -1,0 +1,7 @@
+removed,largest_component,n_components,nodes_reachable_from_seeds
+0,1877,35,2248
+1,1863,37,2243
+3,1802,75,2173
+5,1794,77,2165
+10,1726,115,2088
+20,1616,172,1917

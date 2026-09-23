@@ -1,0 +1,19 @@
+{
+  "nodes_declared": 2248,
+  "nodes_in_graph": 2248,
+  "edges": 3119,
+  "transactions": 4840,
+  "turnover_kzt": 365890012.01,
+  "period": [
+    "2026-07-01",
+    "2026-07-31"
+  ],
+  "seeds": 81,
+  "seeds_absent_from_edges": 19,
+  "seeds_without_outgoing": 31,
+  "dead_ends": 1554,
+  "dead_ends_truncated_depth4": 444,
+  "dead_ends_genuine": 1110,
+  "weakly_connected_components": 35,
+  "edges_match_transactions": true
+}

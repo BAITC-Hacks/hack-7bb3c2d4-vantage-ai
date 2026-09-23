@@ -15,7 +15,8 @@ Read before proposing anything: `docs/case-spec-full.txt` (the case specificatio
 
 - Five hours. Hard stop 18:00 Astana. Whatever is committed then is what gets judged, including at
   Demo Day on 29 September.
-- **One command, raw parquet to three CSVs, under five minutes, on a clean machine.** Currently 1.1 s.
+- **One command, raw parquet to three CSVs, under five minutes, on a clean machine.** Currently about
+  2.3 s on this machine, measured by the timer `run.py` prints at the end.
 - **No hardcoded gid lists.** Roles come from computed metrics, never from a literal list.
 - **No black box.** Every role must trace to an explainable rule with a numeric threshold. The jury
   names three arbitrary gids at the demo and we explain each in a minute.
@@ -28,9 +29,12 @@ Read before proposing anything: `docs/case-spec-full.txt` (the case specificatio
 
 ## Stack, pinned
 
-Python 3.11+, pandas, pyarrow, networkx, numpy. Nothing else without a reason. The review screen is
-plain HTML with no build step and no framework, served from the standard library, so reproduction
-needs only `requirements.txt`.
+Python 3.11+, pandas, pyarrow, networkx, numpy and scipy. scipy is there because networkx calls it
+for the HITS and PageRank eigenvector solvers, so it is a real dependency even though nothing in
+`src/` imports it by name. Nothing else without a reason. All five are pinned to an exact version in
+`requirements.txt`, not floored, because the determinism claim rests on networkx's iteration order
+and on the scipy routine behind those solvers. The review screen is plain HTML with no build step and
+no framework, served from the standard library, so reproduction needs only `requirements.txt`.
 
 ## Commands
 
@@ -65,8 +69,10 @@ data/*.parquet
   inflow is understated by construction and any give-to-receive ratio on a seed is meaningless.
 - **Never treat `out_degree == 0` as terminal on its own.** At hop 4 it is the crawl boundary. The
   split is `genuine_terminal` (depth below 4) against `truncated_by_depth` (depth 4).
-- Assertions in `run.py` enforce the row count, non-empty evidence and the minimum top-list size. Do
-  not remove them to make a run pass.
+- Assertions in `run.py` enforce the row count, non-empty evidence, the minimum top-list size, a
+  non-empty hypothesis on every cluster, a non-empty `resilience.csv`, `reciprocal_pairs.csv`,
+  `pagerank_vs_evidence.csv` and `cycles.csv`, and that `graph.json` parses back with the keys the
+  review screen reads. Do not remove them to make a run pass.
 
 ## What not to do
 

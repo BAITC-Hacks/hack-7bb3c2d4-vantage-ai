@@ -1,100 +1,335 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Money Graph</title>
+<title>Money Graph · HackAlem</title>
 <style>
+/* ------------------------------------------------------------------ *
+ * HackAlem palette. Every colour used anywhere on this page is a token
+ * declared here, so the whole screen can be retuned from one block.
+ * Amber is reserved: one figure per panel, the one that matters most.
+ * No green anywhere. Green belongs to Astana Hub, not to HackAlem.
+ * ------------------------------------------------------------------ */
 :root{
-  --bg:#0f1115; --panel:#161920; --line:#262b36; --fg:#e8eaed; --muted:#8b93a1;
-  --accent:#4a9eff; --warn:#f0a020; --bad:#e5484d; --ok:#3fb950;
-  --consolidator:#e5484d; --coordinator:#f0a020; --transit:#4a9eff;
-  --distributor:#a371f7; --terminal:#3fb950; --peripheral:#5a6270; --unclassified:#3a4050;
+  --bg:#060B16;
+  --panel:#0B1524;
+  --sunk:#050912;
+  --line:#16243A;
+  --line-soft:#0F1B2C;
+  --fg:#EEF3FB;
+  --muted:#8FA3BF;
+  --primary:#00C8FF;
+  --secondary:#009AF0;
+  --amber:#FFB020;
+
+  --display:Manrope,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+
+  --consolidator:#FF5C6C;
+  --coordinator:#C77DFF;
+  --transit:#00C8FF;
+  --distributor:#009AF0;
+  --terminal:#7A8AA8;
+  --peripheral:#4A5B75;
+  /* The two abstentions are one hue at two steps, stepped down from the coordinator violet
+     towards the panel. They read as a pair belonging together and as subordinate to every
+     rule-based role, because an abstention should not pull the eye away from a consolidator. */
+  --abstained_boundary:#6B5FA6;
+  --abstained_single_observation:#443C6E;
+
+  --conf-low:#27364D;
+  --conf-high:#00C8FF;
+  --steel:#5A6B87;
+
+  --grid:rgba(0,200,255,.10);
+  --grid-label:#7C90AD;
+  --edge:rgba(122,138,168,.20);
+  --edge-dim:rgba(122,138,168,.07);
+  --edge-on:rgba(0,200,255,.85);
+  --arrow:rgba(0,200,255,.90);
+  --ring:#EEF3FB;
+  --row-hover:rgba(0,200,255,.07);
+  --dot-edge:rgba(238,243,251,.28);
+
+  --header-h:3.9rem;
+  --pane-h:21rem;
 }
 *{box-sizing:border-box}
-body{margin:0;font:14px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--fg)}
-header{display:flex;align-items:baseline;gap:1.25rem;padding:.7rem 1.1rem;border-bottom:1px solid var(--line)}
-h1{font-size:.95rem;margin:0;font-weight:650;letter-spacing:.2px}
-.sub{color:var(--muted);font-size:.8rem}
-main{display:grid;grid-template-columns:21rem 1fr;height:calc(100vh - 3rem)}
-aside{border-right:1px solid var(--line);overflow:auto;padding:.9rem 1rem;background:var(--panel)}
-.stage{display:flex;flex-direction:column;min-width:0}
+html{font-size:16px}
+body{margin:0;font:1rem/1.5 var(--body);background:var(--bg);color:var(--fg);
+     -webkit-font-smoothing:antialiased}
+
+/* ------------------------------ header ------------------------------ */
+header{display:flex;align-items:center;gap:1rem;height:var(--header-h);
+       padding:0 1.2rem;border-bottom:1px solid var(--line);background:var(--panel)}
+.mark{display:flex;align-items:baseline;gap:0}
+.mark b{font:700 1.2rem/1 var(--display);letter-spacing:-.01em;color:var(--fg)}
+.mark i{font-style:normal;font:700 1.2rem/1 var(--display);color:var(--primary)}
+h1{font:600 1.05rem/1 var(--display);margin:0;padding-left:1rem;border-left:1px solid var(--line);
+   letter-spacing:.01em}
+.sub{color:var(--muted);font-size:.875rem}
+#meta strong{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
+
+main{display:grid;grid-template-columns:23rem 1fr;grid-template-rows:minmax(0,1fr);
+     height:calc(100vh - var(--header-h));overflow:hidden}
+aside{border-right:1px solid var(--line);overflow:auto;min-height:0;padding:1rem 1.1rem 2rem;
+      background:var(--panel)}
+.stage{display:flex;flex-direction:column;min-width:0;min-height:0}
 #cv{flex:1;display:block;width:100%;background:var(--bg);cursor:crosshair}
-.tabs{display:flex;gap:.25rem;border-top:1px solid var(--line);padding:.4rem .6rem 0;background:var(--panel)}
-.tab{padding:.35rem .7rem;font-size:.8rem;color:var(--muted);border:1px solid transparent;border-bottom:none;border-radius:6px 6px 0 0;cursor:pointer}
+
+/* ------------------------------ sidebar ----------------------------- */
+.k{color:var(--muted);font-size:.875rem;font-weight:600;text-transform:uppercase;
+   letter-spacing:.09em;margin-top:1.1rem;margin-bottom:.35rem}
+input{width:100%;padding:.6rem .7rem;border:1px solid var(--line);border-radius:8px;
+      background:var(--sunk);color:var(--fg);font:1.05rem/1.2 var(--body);
+      font-variant-numeric:tabular-nums}
+input:focus{outline:none;border-color:var(--primary)}
+input::placeholder{color:var(--steel)}
+.v{font-variant-numeric:tabular-nums;font-family:var(--display);font-size:1.1rem;font-weight:600}
+.pill{display:inline-block;padding:.15rem .55rem;border-radius:999px;font-size:.875rem;font-weight:650}
+.ev{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:.6rem .7rem;
+    font-size:.9rem;color:var(--fg);line-height:1.45}
+.stat{display:flex;justify-content:space-between;gap:.75rem;font-size:.9rem;padding:.22rem 0;
+      color:var(--muted)}
+.stat b{font-variant-numeric:tabular-nums;font-weight:650;color:var(--fg);text-align:right}
+.hint{color:var(--muted);font-size:.875rem;line-height:1.5;margin-top:.6rem}
+/* Naming the two abstentions separately gave the role legend eight entries and two long
+   labels. At .875rem they wrapped to five rows and pushed the last entry below the fold at
+   1440x900, which is the size this is demonstrated at, so the legend sets its own smaller
+   step: eight entries fit in four rows and every role stays visible without scrolling. */
+.legend{display:flex;flex-wrap:wrap;gap:.35rem .7rem;margin-top:.4rem}
+.legend span{font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:.35rem}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none;
+     box-shadow:inset 0 0 0 1px var(--dot-edge)}
+
+.modes{display:flex;gap:.3rem;background:var(--sunk);border:1px solid var(--line);
+       border-radius:9px;padding:.25rem}
+.modes button{flex:1;padding:.4rem .2rem;font:600 .875rem/1.2 var(--body);color:var(--muted);
+              background:none;border:0;border-radius:6px;cursor:pointer;transition:background 120ms,color 120ms}
+.modes button[aria-pressed=true]{background:var(--bg);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
+.modes button[disabled]{opacity:.4;cursor:not-allowed}
+
+/* ------------------------------- tabs ------------------------------- */
+.tabs{display:flex;flex-wrap:wrap;gap:.15rem;border-top:1px solid var(--line);
+      padding:.45rem .6rem 0;background:var(--panel)}
+.tab{padding:.45rem .58rem;font:600 .9375rem/1.2 var(--body);color:var(--muted);white-space:nowrap;
+     border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;cursor:pointer;
+     transition:color 120ms,background 120ms}
 .tab[aria-selected=true]{color:var(--fg);background:var(--bg);border-color:var(--line)}
-.pane{display:none;height:15rem;overflow:auto;padding:.6rem .9rem;background:var(--bg);border-top:1px solid var(--line)}
+.pane{display:none;height:var(--pane-h);overflow:auto;padding:.75rem 1rem 1rem;background:var(--bg);
+      border-top:1px solid var(--line)}
 .pane[data-on]{display:block}
-input{width:100%;padding:.5rem .6rem;border:1px solid var(--line);border-radius:7px;background:#0c0e12;color:var(--fg);font:inherit}
-input::placeholder{color:#5a6270}
-table{border-collapse:collapse;width:100%;font-size:.8rem}
-th,td{text-align:left;padding:.3rem .5rem;border-bottom:1px solid var(--line);white-space:nowrap}
-td.wrap{white-space:normal;color:var(--muted)}
-th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;position:sticky;top:0;background:var(--bg)}
-tbody tr:hover td{background:#1a1e27;cursor:pointer}
+
+/* ----------------------------- headline ----------------------------- */
+.headline{display:flex;align-items:baseline;gap:.75rem;margin:0 0 .7rem}
+.headline b{font:700 2.1rem/1 var(--display);color:var(--amber);font-variant-numeric:tabular-nums;
+            letter-spacing:-.02em}
+.headline span{font-size:.9375rem;color:var(--muted);line-height:1.35}
+
+/* ------------------------------ tables ------------------------------ */
+table{border-collapse:collapse;width:100%;font-size:.9375rem}
+th,td{text-align:left;padding:.4rem .6rem;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+td.wrap{white-space:normal;color:var(--muted);line-height:1.4}
+th{color:var(--muted);font-weight:650;font-size:.875rem;text-transform:uppercase;letter-spacing:.06em;
+   position:sticky;top:0;background:var(--bg);border-bottom-color:var(--line);z-index:1}
+tbody tr[data-gid]:hover td,tbody tr[data-frm]:hover td{background:var(--row-hover);cursor:pointer}
+tbody tr[aria-selected=true] td{background:var(--row-hover);box-shadow:inset 2px 0 0 var(--amber)}
 .num{font-variant-numeric:tabular-nums;text-align:right}
-.k{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;margin-top:.75rem}
-.v{font-variant-numeric:tabular-nums}
-.pill{display:inline-block;padding:.1rem .45rem;border-radius:999px;font-size:.72rem;font-weight:600}
-.ev{background:#0c0e12;border:1px solid var(--line);border-radius:7px;padding:.55rem .65rem;font-size:.8rem;color:#c8cdd6;margin-top:.3rem}
-.legend{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
-.legend span{font-size:.7rem;color:var(--muted);display:flex;align-items:center;gap:.25rem}
-.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
-.hint{color:var(--muted);font-size:.75rem;margin-top:.5rem}
-.stat{display:flex;justify-content:space-between;font-size:.8rem;padding:.15rem 0}
-.stat b{font-variant-numeric:tabular-nums;font-weight:600}
+.note{color:var(--muted);font-size:.9375rem;line-height:1.5;margin:0 0 .6rem;max-width:72ch}
+.absent{border:1px dashed var(--line);border-radius:9px;padding:1rem 1.1rem;color:var(--muted);
+        font-size:.9375rem;line-height:1.55;max-width:68ch}
+.absent b{display:block;color:var(--fg);font:650 1rem/1.3 var(--display);margin-bottom:.3rem}
+
+/* ------------------------ two column panels ------------------------- */
+.split{display:grid;grid-template-columns:1.25fr 1fr;gap:1.1rem;align-items:start}
+.split>div{min-width:0;overflow-x:auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.85rem .95rem}
+.card h3{margin:0 0 .5rem;font:650 1rem/1.25 var(--display);color:var(--fg)}
+.break{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:.7rem .85rem;
+       margin:.2rem 0 .7rem}
+.break .lab{font-size:.875rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;
+            font-weight:650}
+.break .gid{font:700 1.6rem/1.15 var(--display);color:var(--amber);font-variant-numeric:tabular-nums;
+            letter-spacing:-.01em;word-break:break-all;margin:.15rem 0 .25rem}
+.break .eff{font-size:.9375rem;color:var(--fg);line-height:1.45}
+.ask{border:1px solid var(--line);border-left:3px solid var(--primary);border-radius:9px;
+     padding:.55rem .75rem;margin-bottom:.5rem;background:var(--panel)}
+.ask .askhead{font:650 .9375rem/1.35 var(--display);color:var(--fg);display:flex;gap:.5rem}
+.ask .rank{color:var(--primary);font-variant-numeric:tabular-nums;flex:none}
+.ask .askwhy{font-size:.9375rem;color:var(--muted);line-height:1.45;margin-top:.25rem}
+.ask .askfig{font-size:.9375rem;color:var(--muted);margin-top:.3rem}
+.ask .askfig b{color:var(--fg);font-variant-numeric:tabular-nums;font-weight:650}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.55rem}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:.55rem .7rem}
+.tile b{display:block;font:650 1.25rem/1.2 var(--display);font-variant-numeric:tabular-nums;color:var(--fg)}
+.tile span{display:block;font-size:.875rem;color:var(--muted);line-height:1.35;margin-top:.15rem}
+.boot{padding:3rem;font-size:1rem;color:var(--muted);line-height:1.6}
 </style>
 
 <header>
+  <span class="mark"><b>Hack</b><i>Alem</i></span>
   <h1>Money Graph</h1>
-  <span class="sub" id="meta">loading…</span>
-  <span class="sub" style="margin-left:auto" id="hopLabels"></span>
+  <span class="sub" id="meta">loading the run</span>
+  <span class="sub" id="hopLabels" style="margin-left:auto"></span>
 </header>
 
 <main>
   <aside>
     <label class="k" for="q" style="margin-top:0">Find a client</label>
-    <input id="q" placeholder="paste a gid" autocomplete="off" spellcheck="false">
+    <input id="q" placeholder="paste a gid" autocomplete="off" spellcheck="false" inputmode="numeric">
     <div id="card"></div>
-    <div class="k">Roles</div>
+
+    <div class="k">Shade the network by</div>
+    <div class="modes" id="modes">
+      <button data-m="role" aria-pressed="true">Role</button>
+      <button data-m="conf" aria-pressed="false">Confidence</button>
+      <button data-m="edge" aria-pressed="false">Crawl edge</button>
+    </div>
     <div class="legend" id="legend"></div>
-    <div class="hint">Left to right is distance from the clients already known to the investigation. Every arrow points the way the money moved.</div>
+    <div class="hint" id="modeNote"></div>
+    <div class="hint">Left to right is distance from the clients already known to the investigation.
+      Every arrow points the way the money moved. Every figure on this screen is a measurement, and
+      every reading of it is a hypothesis to test.</div>
   </aside>
 
   <div class="stage">
     <canvas id="cv"></canvas>
     <div class="tabs" role="tablist">
-      <div class="tab" role="tab" data-p="top" aria-selected="true">Investigate first</div>
-      <div class="tab" role="tab" data-p="dis">Where centrality misleads</div>
+      <div class="tab" role="tab" data-p="frm" aria-selected="true">Formations</div>
+      <div class="tab" role="tab" data-p="top">Investigate first</div>
+      <div class="tab" role="tab" data-p="dis">Centrality vs evidence</div>
       <div class="tab" role="tab" data-p="res">If we act on this</div>
       <div class="tab" role="tab" data-p="clu">Groups</div>
       <div class="tab" role="tab" data-p="loop">Return flows</div>
+      <div class="tab" role="tab" data-p="cmp">What we cannot see</div>
     </div>
-    <div class="pane" data-p="top" data-on></div>
+    <div class="pane" data-p="frm" data-on></div>
+    <div class="pane" data-p="top"></div>
     <div class="pane" data-p="dis"></div>
     <div class="pane" data-p="res"></div>
     <div class="pane" data-p="clu"></div>
     <div class="pane" data-p="loop"></div>
+    <div class="pane" data-p="cmp"></div>
   </div>
 </main>
 
 <script type="module">
-const D = await (await fetch("../out/graph.json")).json();
-const byId = new Map(D.nodes.map(n => [String(n.id), n]));
+/* Nothing on this page is fetched from anywhere but the run's own output. */
+let D;
+try {
+  D = await (await fetch("../out/graph.json")).json();
+} catch (err) {
+  document.body.innerHTML =
+    `<div class="boot">The run output could not be read. This screen expects
+     <code>out/graph.json</code> beside it, served over HTTP rather than opened from disk.
+     Start it with <code>python3 run.py --serve</code>.</div>`;
+  throw err;
+}
+
+/* ------------------------------ helpers ------------------------------ */
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g,
+  c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const css = k => getComputedStyle(document.documentElement).getPropertyValue("--" + k).trim();
-const COL = Object.fromEntries(D.meta.roleOrder.map(r => [r, css(r)]));
 const fmt = n => Number(n).toLocaleString("en-GB", { maximumFractionDigits: 0 });
 
-document.getElementById("meta").textContent =
-  `${fmt(D.meta.nodes)} clients · ${fmt(D.meta.edges)} transfer pairs · ${fmt(D.meta.turnover)} KZT · ${D.meta.seeds} known to the investigation`;
-document.getElementById("legend").innerHTML = D.meta.roleOrder
-  .filter(r => D.meta.roleCounts[r])
-  .map(r => `<span><i class="dot" style="background:${COL[r]}"></i>${r} ${D.meta.roleCounts[r]}</span>`).join("");
+/* The breaking point effect is counted in two different units depending on how it was
+   measured, so the unit is rendered with it. Without one the same slot reads "3" for a
+   member count and "3082066" for a sum of money, which look like the same kind of number. */
+const BREAK_UNIT = { articulation: "members cut off", dominator: "members cut off", flow: "KZT stopped" };
+const breakEffect = f => {
+  const v = f.breaking_point_effect;
+  if (v === null || v === undefined || v === "" || !isFinite(Number(v)))
+    return esc("No effect figure was recorded for this formation.");
+  const unit = BREAK_UNIT[f.breaking_point_method];
+  return esc(fmt(v) + (unit ? " " + unit : ""));
+};
+const rgbOf = h => { const v = h.replace("#", ""); return [0, 2, 4].map(i => parseInt(v.slice(i, i + 2), 16) || 0); };
+const mix = (a, b, t) => { const A = rgbOf(a), B = rgbOf(b);
+  return `rgb(${A.map((x, i) => Math.round(x + (B[i] - x) * t)).join(",")})`; };
+const soft = (h, a) => { const c = rgbOf(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; };
+const has = k => Object.prototype.hasOwnProperty.call(D, k) && D[k] != null
+  && (!Array.isArray(D[k]) || D[k].length > 0);
 
-/* ---------- layout: hop on x, slot on y. No force simulation, no hairball. ---------- */
-const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
-let W = 0, H = 0, DPR = Math.min(devicePixelRatio || 1, 2);
-const PAD = { l: 74, r: 70, t: 26, b: 22 };
+const AMBER = css("amber");
+const COL = Object.fromEntries((D.meta.roleOrder || []).map(r => [r, css(r) || css("steel")]));
+const roleCol = r => COL[r] || css("steel");
+
+/* Ids are 18 digits and exceed Number.MAX_SAFE_INTEGER. Two different clients compare
+   equal the moment either one is coerced to a number, so every key is a String. */
+const byId = new Map(D.nodes.map(n => [String(n.id), n]));
+
+document.getElementById("meta").innerHTML =
+  `<strong>${fmt(D.meta.nodes)}</strong> clients · <strong>${fmt(D.meta.edges)}</strong> transfer pairs
+   · <strong>${fmt(D.meta.turnover)}</strong> KZT · <strong>${D.meta.seeds}</strong> already known to the investigation`;
+
+/* --------------------------- knowledge state --------------------------- */
+/* Two other stages of the run may attach a per-node knowledge state. Several
+   shapes are accepted because the producer is written separately; if none of
+   them is present the confidence mode says so rather than inventing a number. */
+const STATES = { fully_observed: 1, observed: 1, complete: 1, confirmed: 1, measured: 1,
+                 inbound_only: .85, partial: .6, outbound_only: .6, indirect: .5, inferred: .5,
+                 truncated_at_depth: .4, truncated: .4, boundary: .4, crawl_stopped: .4,
+                 isolated: .1, unknown: .1, invisible: .1, unobserved: .1 };
+
+/* The stages that produce this are written separately and may deliver a table of
+   their own rather than fields on a node, under a key this page cannot know in
+   advance. Both tables are found by their shape instead. */
+function findRecords(test) {
+  for (const k of Object.keys(D)) {
+    const v = D[k];
+    if (Array.isArray(v) && v.length && v[0] && typeof v[0] === "object" && test(v[0])) return v;
+  }
+  return null;
+}
+const memberRows = findRecords(r => "formation_id" in r && "gid" in r);
+const MEMBERS_BY_FORMATION = new Map();
+if (memberRows) for (const r of memberRows) {
+  const k = String(r.formation_id);
+  if (!MEMBERS_BY_FORMATION.has(k)) MEMBERS_BY_FORMATION.set(k, new Set());
+  MEMBERS_BY_FORMATION.get(k).add(String(r.gid));
+}
+const knowRows = findRecords(r => "gid" in r && ("confidence" in r || "knowledge_state" in r));
+const KNOW_BY_GID = new Map();
+if (knowRows) for (const r of knowRows) KNOW_BY_GID.set(String(r.gid), r);
+const kmap = D.node_knowledge || D.knowledge || D.nodeKnowledge || D.knowledge_states || null;
+
+const clamp01 = v => Math.min(1, Math.max(0, v));
+const prettyState = v => String(v).replace(/_/g, " ");
+function knowledgeOf(n) {
+  const row = KNOW_BY_GID.get(String(n.id));
+  let v = n.confidence ?? n.knowledge ?? n.knowledgeState ?? n.knowledge_state;
+  let label = n.knowledge_state ?? n.knowledgeState ?? null;
+  if (row) {
+    if (v == null) v = row.confidence ?? row.knowledge_state;
+    if (label == null) label = row.knowledge_state ?? null;
+  }
+  if (v == null && kmap) v = kmap[String(n.id)];
+  if (v && typeof v === "object") {
+    if (label == null) label = v.state ?? v.knowledge ?? null;
+    v = v.confidence ?? v.state ?? v.knowledge;
+  }
+  if (v == null) return null;
+  if (typeof v === "number") return { conf: clamp01(v), label: label ? prettyState(label) : null };
+  const key = String(v).toLowerCase().replace(/[\s-]+/g, "_");
+  if (key in STATES) return { conf: STATES[key], label: prettyState(label ?? v) };
+  const num = parseFloat(v);
+  return isFinite(num) ? { conf: clamp01(num), label: label ? prettyState(label) : null }
+                       : { conf: .5, label: prettyState(label ?? v) };
+}
+const HAS_KNOWLEDGE = D.nodes.some(n => knowledgeOf(n) !== null);
+
+/* The crawl followed four hops. A node sitting at the last hop with nothing
+   going out is where the crawl stopped, not where the money stopped. That is a
+   declared limitation of the extract rather than a derived attribute. */
 const maxHop = Math.max(...D.nodes.map(n => n.hop));
+const atCrawlEdge = n => n.hop === maxHop && n.outDeg === 0;
+const nEdgeNodes = D.nodes.filter(atCrawlEdge).length;
+
+/* ------------------------------- canvas ------------------------------- */
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+let W = 0, H = 0;
+const DPR = Math.min(devicePixelRatio || 1, 2);
+const PAD = { l: 88, r: 80, t: 30, b: 24 };
 
 function resize() {
   const r = cv.getBoundingClientRect();
@@ -103,30 +338,32 @@ function resize() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   for (const n of D.nodes) {
     // Deterministic spread inside the hop so a band of 789 clients reads as a
-    // population rather than a solid bar. Position is stable across runs.
-    // Ids arrive as strings because they are too long for a JS number. Hash the last
-    // digits for a stable spread inside the hop.
+    // population rather than a solid bar. Hash the last digits of the id, as a
+    // string, so the position is stable across runs and across browsers.
     const jig = ((+String(n.id).slice(-4) % 997) / 997 - 0.5);
-    const band = Math.min(58, (W - PAD.l - PAD.r) / (maxHop + 1) * 0.55);
+    const band = Math.min(62, (W - PAD.l - PAD.r) / (maxHop + 1) * 0.55);
     n.px = PAD.l + (W - PAD.l - PAD.r) * (maxHop ? n.hop / maxHop : 0.5) + jig * band;
     n.py = PAD.t + (H - PAD.t - PAD.b) * n.y;
-    n.r = n.seed ? 4.2 : 2 + Math.min(3.4, Math.log10(1 + n.inKzt + n.outKzt) * 0.55);
+    n.r = n.seed ? 4.8 : 2.3 + Math.min(3.8, Math.log10(1 + n.inKzt + n.outKzt) * 0.6);
   }
   draw();
 }
 new ResizeObserver(resize).observe(cv);
 
-let selected = null, hovered = null, highlightEdges = new Set(), highlightNodes = new Set();
+let selected = null, hovered = null, breakNode = null;
+let hlNodes = new Set(), hlEdges = new Set();
+let mode = "role";
+
+const incoming = new Map();
+for (const e of D.edges) { if (!incoming.has(e.t)) incoming.set(e.t, []); incoming.get(e.t).push(e); }
 
 function chainsFor(id) {
   // Follow the money backwards to whichever known client it came from.
-  const inc = new Map();
-  for (const e of D.edges) { if (!inc.has(e.t)) inc.set(e.t, []); inc.get(e.t).push(e); }
   const nodes = new Set([id]), edges = new Set();
   let frontier = [id];
   for (let hop = 0; hop < 5 && frontier.length; hop++) {
     const next = [];
-    for (const cur of frontier) for (const e of (inc.get(cur) || [])) {
+    for (const cur of frontier) for (const e of (incoming.get(cur) || [])) {
       edges.add(e);
       if (!nodes.has(e.s)) { nodes.add(e.s); next.push(e.s); }
     }
@@ -136,82 +373,414 @@ function chainsFor(id) {
   return { nodes, edges };
 }
 
-function select(id) {
-  const n = byId.get(String(id).trim());
-  if (!n) { document.getElementById("card").innerHTML =
-    `<div class="ev">No client with that gid in this extract.</div>`; return; }
-  selected = n;
-  const h = chainsFor(n.id);
-  highlightNodes = h.nodes; highlightEdges = h.edges;
-  const pct = n.priority != null ? n.priority : 0;
-  document.getElementById("card").innerHTML = `
-    <div class="k">Client</div><div class="v" style="font-size:.95rem">${n.id}</div>
-    <div class="k">Assessed as</div>
-    <div><span class="pill" style="background:${COL[n.role]}22;color:${COL[n.role]}">${n.role}</span>
-      <span class="sub">confidence ${n.roleScore.toFixed(2)}</span></div>
-    <div class="k">Why</div><div class="ev">${n.evidence}</div>
-    <div class="k">Money</div>
-    <div class="stat"><span>received</span><b>${fmt(n.inKzt)} KZT from ${n.inDeg}</b></div>
-    <div class="stat"><span>sent on</span><b>${fmt(n.outKzt)} KZT to ${n.outDeg}</b></div>
-    <div class="k">Position</div>
-    <div class="stat"><span>hops from a known client</span><b>${n.hop}${n.seed ? " (known)" : ""}</b></div>
-    <div class="stat"><span>group</span><b>${n.cluster}</b></div>
-    <div class="stat"><span>investigation priority</span><b>${pct.toFixed(3)}</b></div>
-    <div class="hint">${h.nodes.size - 1} clients sit on the routes into this one. They are highlighted on the chart.</div>`;
-  draw();
+function fillFor(n) {
+  if (mode === "conf") {
+    const k = knowledgeOf(n);
+    return k ? mix(css("conf-low"), css("conf-high"), Math.pow(k.conf, 1.35)) : css("conf-low");
+  }
+  if (mode === "edge") return atCrawlEdge(n) ? AMBER : css("steel");
+  return roleCol(n.role);
 }
 
 function draw() {
   ctx.clearRect(0, 0, W, H);
-  // hop guides
-  ctx.font = "11px ui-sans-serif,system-ui"; ctx.textAlign = "center";
+  ctx.font = "14px " + css("body");
+  ctx.textAlign = "center";
   for (let h = 0; h <= maxHop; h++) {
     const x = PAD.l + (W - PAD.l - PAD.r) * (maxHop ? h / maxHop : .5);
-    ctx.strokeStyle = "#1b1f28"; ctx.beginPath();
-    ctx.moveTo(x, PAD.t - 8); ctx.lineTo(x, H - PAD.b); ctx.stroke();
-    ctx.fillStyle = "#6b7280";
-    ctx.fillText(h === 0 ? "known clients" : `hop ${h}`, x, PAD.t - 12);
+    ctx.strokeStyle = css("grid");
+    ctx.beginPath(); ctx.moveTo(x, PAD.t - 8); ctx.lineTo(x, H - PAD.b); ctx.stroke();
+    ctx.fillStyle = css("grid-label");
+    ctx.fillText(h === 0 ? "known clients" : "hop " + h, x, PAD.t - 13);
   }
-  const dim = highlightEdges.size > 0;
+  const dim = hlNodes.size > 0;
   for (const e of D.edges) {
     const a = byId.get(e.s), b = byId.get(e.t);
     if (!a || !b) continue;
-    const on = highlightEdges.has(e);
-    ctx.strokeStyle = on ? "rgba(74,158,255,.85)" : (dim ? "rgba(90,98,112,.10)" : "rgba(90,98,112,.22)");
-    ctx.lineWidth = on ? 1.5 : .7;
+    const on = hlEdges.has(e);
+    ctx.strokeStyle = on ? css("edge-on") : (dim ? css("edge-dim") : css("edge"));
+    ctx.lineWidth = on ? 1.6 : .7;
     ctx.beginPath();
     const mx = (a.px + b.px) / 2;
     ctx.moveTo(a.px, a.py); ctx.bezierCurveTo(mx, a.py, mx, b.py, b.px, b.py); ctx.stroke();
     if (on) arrow(a, b);
   }
   for (const n of D.nodes) {
-    const on = !dim || highlightNodes.has(n.id);
-    ctx.globalAlpha = on ? 1 : .18;
-    ctx.fillStyle = COL[n.role] || "#5a6270";
+    const on = !dim || hlNodes.has(String(n.id));
+    ctx.globalAlpha = on ? 1 : .16;
+    ctx.fillStyle = fillFor(n);
     ctx.beginPath(); ctx.arc(n.px, n.py, n.r, 0, 6.2832); ctx.fill();
-    if (n.seed) { ctx.strokeStyle = "#e8eaed"; ctx.lineWidth = .9; ctx.stroke(); }
+    if (n.seed) { ctx.strokeStyle = css("ring"); ctx.lineWidth = .9; ctx.stroke(); }
   }
   ctx.globalAlpha = 1;
   if (selected) {
-    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(selected.px, selected.py, selected.r + 4.5, 0, 6.2832); ctx.stroke();
+    ctx.strokeStyle = css("ring"); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(selected.px, selected.py, selected.r + 5, 0, 6.2832); ctx.stroke();
+  }
+  if (breakNode) {
+    // The breaking point is the one thing on this screen that gets the amber.
+    ctx.strokeStyle = AMBER; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(breakNode.px, breakNode.py, breakNode.r + 8, 0, 6.2832); ctx.stroke();
+    ctx.beginPath(); ctx.arc(breakNode.px, breakNode.py, breakNode.r + 14, 0, 6.2832);
+    ctx.strokeStyle = soft(AMBER, .35); ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = AMBER; ctx.textAlign = "left"; ctx.font = "600 14px " + css("display");
+    ctx.fillText("breaking point", breakNode.px + breakNode.r + 18, breakNode.py + 5);
   }
   if (hovered) {
-    ctx.fillStyle = "#e8eaed"; ctx.textAlign = "left"; ctx.font = "11px ui-sans-serif";
-    ctx.fillText(`${hovered.id} · ${hovered.role}`, hovered.px + 8, hovered.py - 7);
+    ctx.fillStyle = css("fg"); ctx.textAlign = "left"; ctx.font = "14px " + css("body");
+    ctx.fillText(`${hovered.id} · ${hovered.role}`, hovered.px + 9, hovered.py - 9);
   }
 }
 function arrow(a, b) {
   const dx = b.px - a.px, dy = b.py - a.py, L = Math.hypot(dx, dy) || 1;
   const ux = dx / L, uy = dy / L, tipX = b.px - ux * (b.r + 2), tipY = b.py - uy * (b.r + 2);
-  ctx.fillStyle = "rgba(74,158,255,.9)";
+  ctx.fillStyle = css("arrow");
   ctx.beginPath(); ctx.moveTo(tipX, tipY);
-  ctx.lineTo(tipX - ux * 6 - uy * 3, tipY - uy * 6 + ux * 3);
-  ctx.lineTo(tipX - ux * 6 + uy * 3, tipY - uy * 6 - ux * 3);
+  ctx.lineTo(tipX - ux * 7 - uy * 3.4, tipY - uy * 7 + ux * 3.4);
+  ctx.lineTo(tipX - ux * 7 + uy * 3.4, tipY - uy * 7 - ux * 3.4);
   ctx.closePath(); ctx.fill();
 }
+
+/* ------------------------------ gid search ------------------------------ */
+/* Mandatory: a judge types an account id and expects the node, its role, its
+   evidence and its neighbourhood. */
+function renderCard(n, tail) {
+  const k = knowledgeOf(n);
+  const col = roleCol(n.role);
+  document.getElementById("card").innerHTML = `
+    <div class="k">Client</div><div class="v">${esc(n.id)}</div>
+    <div class="k">Assessed as</div>
+    <div><span class="pill" style="background:${soft(col, .16)};color:${col}">${esc(n.role)}</span>
+      <span class="sub" style="margin-left:.4rem">rule confidence ${n.roleScore.toFixed(2)}</span></div>
+    <div class="k">Why</div><div class="ev">${esc(n.evidence)}</div>
+    <div class="k">Money</div>
+    <div class="stat"><span>received</span><b>${fmt(n.inKzt)} KZT from ${n.inDeg}</b></div>
+    <div class="stat"><span>sent on</span><b>${fmt(n.outKzt)} KZT to ${n.outDeg}</b></div>
+    <div class="k">Position</div>
+    <div class="stat"><span>hops from a known client</span><b>${n.hop}${n.seed ? " (known)" : ""}</b></div>
+    <div class="stat"><span>group</span><b>${n.cluster}</b></div>
+    <div class="stat"><span>investigation priority</span><b>${(n.priority ?? 0).toFixed(3)}</b></div>
+    ${k ? `<div class="stat"><span>what we know of it</span><b>${esc(k.label || (k.conf * 100).toFixed(0) + "%")}</b></div>` : ""}
+    ${atCrawlEdge(n) ? `<div class="hint">This client sits at hop ${maxHop} with nothing going out.
+      The crawl stopped here, so whether the money stopped here is not something this extract can say.</div>` : ""}
+    ${tail || ""}`;
+}
+
+function select(id) {
+  const key = String(id).trim();
+  const n = byId.get(key);
+  if (!n) {
+    document.getElementById("card").innerHTML =
+      `<div class="ev" style="margin-top:.7rem">No client with that gid in this extract.</div>`;
+    return;
+  }
+  selected = n; breakNode = null;
+  const h = chainsFor(String(n.id));
+  hlNodes = h.nodes; hlEdges = h.edges;
+  renderCard(n, `<div class="hint">${h.nodes.size - 1} clients sit on the routes into this one.
+    They are highlighted on the chart.</div>`);
+  draw();
+  document.querySelectorAll("tr[data-frm]").forEach(tr => tr.removeAttribute("aria-selected"));
+}
+
+/* -------------------------------- modes -------------------------------- */
+const legendEl = document.getElementById("legend"), noteEl = document.getElementById("modeNote");
+function paintLegend() {
+  if (mode === "role") {
+    legendEl.innerHTML = (D.meta.roleOrder || []).filter(r => D.meta.roleCounts[r])
+      .map(r => `<span><i class="dot" style="background:${roleCol(r)}"></i>${esc(r)} ${D.meta.roleCounts[r]}</span>`).join("");
+    noteEl.textContent = "A role is the rule that fired, with the numbers it fired on.";
+  } else if (mode === "conf") {
+    const lo = css("conf-low"), hi = css("conf-high");
+    legendEl.innerHTML =
+      `<span><i class="dot" style="background:${lo}"></i>resting on a crawl that stopped</span>
+       <span><i class="dot" style="background:${mix(lo, hi, Math.pow(.5, 1.35))}"></i>partly observed</span>
+       <span><i class="dot" style="background:${hi}"></i>fully observed</span>`;
+    noteEl.textContent = HAS_KNOWLEDGE
+      ? "Brighter is better observed. Dark clients are where the picture rests on an extract that ended."
+      : "Per-client knowledge states were not generated in this run, so every client is drawn at the same low confidence rather than given a number we did not measure.";
+  } else {
+    legendEl.innerHTML =
+      `<span><i class="dot" style="background:${AMBER}"></i>crawl stopped here ${fmt(nEdgeNodes)}</span>
+       <span><i class="dot" style="background:${css("steel")}"></i>followed to its end ${fmt(D.nodes.length - nEdgeNodes)}</span>`;
+    noteEl.textContent = `Amber marks the ${fmt(nEdgeNodes)} clients at hop ${maxHop} with nothing recorded going out. They are the edge of what was collected, not the end of the money.`;
+  }
+}
+document.getElementById("modes").addEventListener("click", e => {
+  const b = e.target.closest("button[data-m]");
+  if (!b) return;
+  mode = b.dataset.m;
+  document.querySelectorAll("#modes button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  paintLegend(); draw();
+});
+
+/* ------------------------------- tables -------------------------------- */
+const pane = p => document.querySelector(`.pane[data-p="${p}"]`);
+const headline = (value, caption) =>
+  `<div class="headline"><b>${value}</b><span>${esc(caption)}</span></div>`;
+const absent = (title, body) => `<div class="absent"><b>${esc(title)}</b>${esc(body)}</div>`;
+const tbl = (cols, rows, attr) => `<table><thead><tr>${
+  cols.map(c => `<th${c.num ? ' class="num"' : ""}>${esc(c.h)}</th>`).join("")
+}</tr></thead><tbody>${rows.map((r, i) => `<tr ${attr ? attr(r, i) : ""}>${
+  cols.map(c => `<td class="${c.num ? "num " : ""}${c.wrap ? "wrap" : ""}">${c.f(r)}</td>`).join("")
+}</tr>`).join("")}</tbody></table>`;
+const gidAttr = f => r => `data-gid="${esc(f(r))}"`;
+
+/* ---- Formations: rank structures, not names -------------------------- */
+const FORMS = Array.isArray(D.formations) ? D.formations.slice() : [];
+FORMS.sort((a, b) => (a.rank ?? 1e9) - (b.rank ?? 1e9));
+
+function membersOf(f) {
+  const fromTable = MEMBERS_BY_FORMATION.get(String(f.formation_id ?? f.id ?? ""));
+  if (fromTable && fromTable.size) return fromTable;
+  let m = f.members ?? f.member_gids ?? f.gids ?? f.node_gids ?? f.nodes;
+  if (typeof m === "string") m = m.split(/[\s,;]+/);
+  if (Array.isArray(m)) {
+    const s = new Set(m.filter(x => x !== "" && x != null).map(String));
+    if (s.size) return s;
+  }
+  const fid = String(f.formation_id ?? f.id ?? "");
+  if (fid && fid !== "undefined") {
+    const s = new Set();
+    for (const n of D.nodes) if (String(n.formation ?? n.formation_id ?? "") === fid) s.add(String(n.id));
+    if (s.size) return s;
+  }
+  return null;
+}
+
+function renderFormations() {
+  if (!FORMS.length) {
+    pane("frm").innerHTML = absent("Formations were not generated in this run",
+      "This panel ranks structures rather than names: a collection point with its feeder set, a transit chain, a pair recycling funds. Each one carries the client whose removal would break the most of it. The stage that produces them did not write a formations key into this run's output, so nothing is shown rather than something invented.");
+    return;
+  }
+  const rows = tbl(
+    [{ h: "#", f: r => esc(r.rank ?? ""), num: 1 },
+     { h: "shape", f: r => esc(r.kind ?? "") },
+     { h: "clients", f: r => fmt(r.n_members ?? 0), num: 1 },
+     { h: "known", f: r => fmt(r.n_seeds ?? 0), num: 1 },
+     { h: "KZT through", f: r => fmt(r.kzt_through ?? 0), num: 1 }],
+    FORMS, (r, i) => `data-frm="${i}"`);
+  pane("frm").innerHTML =
+    `<div class="split">
+       <div>
+         <p class="note">Ranked by what an investigator can act on. A formation only makes sense as a
+           group, so it is ranked as a group. Select one to light it up on the chart.</p>
+         ${rows}
+       </div>
+       <div id="fdetail"></div>
+     </div>`;
+  selectFormation(0);
+}
+
+function selectFormation(i) {
+  const f = FORMS[i];
+  if (!f) return;
+  const mem = membersOf(f);
+  const bp = f.breaking_point_gid != null ? String(f.breaking_point_gid) : null;
+  hlNodes = new Set(mem || []);
+  if (bp) hlNodes.add(bp);
+  hlEdges = new Set(D.edges.filter(e => hlNodes.has(e.s) && hlNodes.has(e.t)));
+  breakNode = bp ? (byId.get(bp) || null) : null;
+  selected = null;
+  draw();
+  if (breakNode) {
+    document.getElementById("q").value = breakNode.id;
+    renderCard(breakNode, `<div class="hint">Marked in amber on the chart as the breaking point of
+      formation ${esc(f.rank ?? "")}, ${esc(f.kind ?? "")}.</div>`);
+  }
+
+  document.querySelectorAll('tr[data-frm]').forEach(tr =>
+    tr.setAttribute("aria-selected", tr.dataset.frm === String(i)));
+
+  const det = document.getElementById("fdetail");
+  if (!det) return;
+  det.innerHTML = `
+    <div class="card">
+      <h3>${esc(f.kind ?? "formation")} · ${fmt(f.n_members ?? 0)} clients, ${fmt(f.n_seeds ?? 0)} already known</h3>
+      <div class="break">
+        <div class="lab">Breaking point</div>
+        <div class="gid">${bp ? esc(bp) : "not identified"}</div>
+        <div class="eff">${breakEffect(f)}</div>
+        ${f.breaking_point_method ? `<div class="sub" style="margin-top:.3rem">measured by ${esc(f.breaking_point_method)}</div>` : ""}
+      </div>
+      <div class="stat"><span>KZT through the formation</span><b>${fmt(f.kzt_through ?? 0)}</b></div>
+      <div class="stat"><span>rank</span><b>${esc(f.rank ?? "")} of ${FORMS.length}</b></div>
+      <div class="stat"><span>score</span><b>${(+(f.score ?? 0)).toFixed(3)}</b></div>
+      ${f.hypothesis ? `<div class="k">Hypothesis to test</div><div class="ev">${esc(f.hypothesis)}</div>` : ""}
+      ${f.evidence ? `<div class="k">Arithmetic behind it</div><div class="ev">${esc(f.evidence)}</div>` : ""}
+      ${!mem ? `<div class="hint">This formation did not carry a member list, so only its breaking point
+        is marked on the chart.</div>` : ""}
+    </div>`;
+}
+renderFormations();
+
+/* ---- Investigate first ------------------------------------------------ */
+if (!has("top")) {
+  pane("top").innerHTML = absent("The ranked client list was not generated in this run",
+    "Priority ranking did not reach this screen's payload.");
+} else {
+  pane("top").innerHTML =
+    headline((+D.top[0].priority_score).toFixed(3),
+      `highest investigation priority in the extract, client ${D.top[0].gid}, ranked above ${D.top.length - 1} others on evidence rather than on centrality alone`) +
+    tbl([{ h: "#", f: r => esc(r.rank), num: 1 },
+         { h: "client", f: r => esc(r.gid) },
+         { h: "assessed as", f: r => `<span style="color:${roleCol(r.role)}">${esc(r.role)}</span>` },
+         { h: "priority", f: r => (+r.priority_score).toFixed(3), num: 1 },
+         { h: "reason", f: r => esc(r.why), wrap: 1 }],
+        D.top, gidAttr(r => r.gid));
+}
+
+/* ---- Where centrality misleads ---------------------------------------- */
+if (!has("demoted")) {
+  pane("dis").innerHTML = absent("The centrality comparison was not generated in this run",
+    "Nothing is shown here rather than a comparison that was not measured.");
+} else {
+  const worst = D.demoted.reduce((a, b) => Math.abs(b.rank_gap) > Math.abs(a.rank_gap) ? b : a);
+  pane("dis").innerHTML =
+    headline(fmt(Math.abs(worst.rank_gap)) + " places",
+      `the furthest a client moves between a plain centrality ranking and the evidence ranking, client ${worst.gid}`) +
+    `<p class="note">A plain centrality ranking promotes clients that flow passes through. It cannot tell a
+      client collecting from many payers apart from a business paying many suppliers. These are the clients
+      it puts near the top that the evidence rules move, and the numbers that moved them.</p>` +
+    tbl([{ h: "client", f: r => esc(r.gid) },
+         { h: "by centrality", f: r => "#" + esc(r.rank_pagerank), num: 1 },
+         { h: "by evidence", f: r => "#" + esc(r.rank_priority), num: 1 },
+         { h: "moved", f: r => (r.rank_gap > 0 ? "+" : "") + esc(r.rank_gap), num: 1 },
+         { h: "assessed as", f: r => `<span style="color:${roleCol(r.role)}">${esc(r.role)}</span>` },
+         { h: "why", f: r => esc(r.evidence), wrap: 1 }],
+        D.demoted, gidAttr(r => r.gid));
+}
+
+/* ---- If we act on this ------------------------------------------------- */
+if (!has("resilience")) {
+  pane("res").innerHTML = absent("The removal test was not generated in this run",
+    "Nothing is shown here rather than a result that was not measured.");
+} else {
+  const a = D.resilience[0], z = D.resilience[D.resilience.length - 1];
+  pane("res").innerHTML =
+    headline(fmt(z.n_components - a.n_components),
+      `additional separate fragments once the top ${z.removed} clients are removed, and ${fmt(a.nodes_reachable_from_seeds - z.nodes_reachable_from_seeds)} fewer clients still reachable from the ones already known`) +
+    `<p class="note">A ranking is only worth having if acting on it changes the network. Removing the top
+      ranked clients in order:</p>` +
+    tbl([{ h: "clients removed", f: r => fmt(r.removed), num: 1 },
+         { h: "largest group left", f: r => fmt(r.largest_component), num: 1 },
+         { h: "separate fragments", f: r => fmt(r.n_components), num: 1 },
+         { h: "still reachable from known clients", f: r => fmt(r.nodes_reachable_from_seeds), num: 1 }],
+        D.resilience);
+}
+
+/* ---- Groups ------------------------------------------------------------ */
+if (!has("clusters")) {
+  pane("clu").innerHTML = absent("Groups were not generated in this run",
+    "Nothing is shown here rather than a grouping that was not computed.");
+} else {
+  const multi = D.clusters.filter(c => (c.n_seed ?? 0) > 1).length;
+  pane("clu").innerHTML =
+    headline(fmt(multi),
+      `of the ${D.clusters.length} groups hold more than one client already known to the investigation, which is where a shared structure would show first`) +
+    tbl([{ h: "group", f: r => esc(r.cluster_id), num: 1 },
+         { h: "clients", f: r => fmt(r.n_nodes), num: 1 },
+         { h: "known", f: r => fmt(r.n_seed), num: 1 },
+         { h: "moving inside", f: r => fmt(r.sum_kzt_internal) + " KZT", num: 1 },
+         { h: "what it looks like", f: r => esc(r.hypothesis), wrap: 1 }],
+        D.clusters, gidAttr(r => String(r.top_gids ?? "").split(/\s+/)[0] || ""));
+}
+
+/* ---- Return flows ------------------------------------------------------ */
+if (!has("reciprocal")) {
+  pane("loop").innerHTML = absent("Return flows were not generated in this run",
+    "Nothing is shown here rather than a pattern that was not measured.");
+} else {
+  const full = D.reciprocal.filter(r => r.returned_share >= 0.999).length;
+  pane("loop").innerHTML =
+    headline(fmt(full),
+      `of the ${D.reciprocal.length} pairs listed sent money back in full, which is worth checking against what each leg was said to be for`) +
+    `<p class="note">Money returning to a client it came from. Worth testing against a legitimate
+      explanation before anything else is read into it.</p>` +
+    tbl([{ h: "client", f: r => esc(r.gid_a) }, { h: "and", f: r => esc(r.gid_b) },
+         { h: "one way", f: r => fmt(r.a_to_b_kzt), num: 1 },
+         { h: "back", f: r => fmt(r.b_to_a_kzt), num: 1 },
+         { h: "returned", f: r => (r.returned_share * 100).toFixed(0) + "%", num: 1 },
+         { h: "transfers", f: r => fmt(r.n_tx), num: 1 }],
+        D.reciprocal, gidAttr(r => r.gid_a));
+}
+
+/* ---- What we cannot see ------------------------------------------------ */
+const prettyKey = k => String(k).replace(/_/g, " ").replace(/\bkzt\b/i, "KZT").trim();
+const SHARE_KEY = /share|ratio|rate|pct|percent|proportion|coverage/i;
+/* A share written as 0.69 rounds to 1 if it goes through the thousands formatter,
+   which would put a wrong number on a projector. Fractions keep their precision. */
+function showVal(k, v) {
+  if (typeof v !== "number") return esc(v);
+  if (Number.isInteger(v)) return fmt(v);
+  if (v > 0 && v <= 1 && SHARE_KEY.test(k)) return (v * 100).toFixed(0) + "%";
+  if (Math.abs(v) < 1) return v.toFixed(3);
+  return fmt(v);
+}
+const HEAD_PRIORITY = /invisible|unobserved|unknown|blind|not_followed|unfollowed|missing|controller|truncat/i;
+
+function renderCompleteness() {
+  const cs = D.completeness_summary;
+  const nd = Array.isArray(D.next_data_request) ? D.next_data_request.slice() : [];
+  const parts = [];
+  let left = "";
+
+  if (cs && typeof cs === "object" && Object.keys(cs).length) {
+    const keys = Object.keys(cs);
+    // The headline is the figure that says most about the blind spot. A zero is not
+    // that figure, however well its name matches, so it is passed over.
+    const live = k => typeof cs[k] === "number" && cs[k] !== 0;
+    const headKey = keys.find(k => HEAD_PRIORITY.test(k) && live(k))
+                 || keys.find(live) || keys.find(k => typeof cs[k] === "number") || keys[0];
+    left = headline(showVal(headKey, cs[headKey]), prettyKey(headKey)) +
+      `<div class="tiles">${keys.filter(k => k !== headKey)
+        .map(k => `<div class="tile"><b>${showVal(k, cs[k])}</b><span>${esc(prettyKey(k))}</span></div>`)
+        .join("")}</div>`;
+  } else {
+    // The fuller summary is produced elsewhere in the run. What this screen can
+    // still say honestly comes from the integrity report, which is measured.
+    const g = D.integrity || {};
+    left = headline(fmt(g.dead_ends_truncated_depth4 ?? nEdgeNodes),
+      `clients where the crawl stopped rather than the money. At hop ${maxHop} with nothing recorded going out, this extract cannot say what happened next.`) +
+      `<div class="tiles">
+        <div class="tile"><b>${fmt(g.dead_ends_genuine ?? 0)}</b><span>dead ends the crawl did follow to their end</span></div>
+        <div class="tile"><b>${fmt(g.seeds_absent_from_edges ?? 0)}</b><span>of the ${fmt(g.seeds ?? D.meta.seeds)} known clients appear in no transfer at all</span></div>
+        <div class="tile"><b>${fmt(g.seeds_without_outgoing ?? 0)}</b><span>known clients sent nothing in the window</span></div>
+        <div class="tile"><b>${fmt(g.weakly_connected_components ?? 0)}</b><span>separate pieces, so this is not one network</span></div>
+      </div>` +
+      `<p class="note" style="margin-top:.7rem"><b>The completeness summary was not generated in this run.</b>
+        The figures above come from this run's integrity report instead. The structural point holds either way:
+        the crawl followed money outwards from the ${fmt(D.meta.seeds)} known clients, so money arriving into
+        them was never followed. Anyone directing them from above is outside this extract by construction, and
+        no ranking of what is inside it can produce them.</p>`;
+  }
+  parts.push(`<div>${left}</div>`);
+
+  if (nd.length) {
+    nd.sort((a, b) => (a.rank ?? 1e9) - (b.rank ?? 1e9));
+    // Stacked rather than tabulated: two prose columns in a narrow table are
+    // unreadable from the back of a room.
+    parts.push(`<div>
+      <p class="note">What to ask for next, ranked by what each request would resolve.</p>
+      ${nd.map(r => `<div class="ask">
+          <div class="askhead"><span class="rank">${esc(r.rank ?? "")}</span>${esc(r.request ?? "")}</div>
+          <div class="askwhy">${esc(r.why ?? "")}</div>
+          <div class="askfig"><b>${fmt(r.resolves_nodes ?? 0)}</b> clients resolved
+            · <b>${fmt(r.illuminates_kzt ?? 0)}</b> KZT lit up</div>
+        </div>`).join("")}
+    </div>`);
+  } else {
+    parts.push(`<div>${absent("The next data request was not generated in this run",
+      "This panel would rank what to ask the data owner for next, and what each request would resolve. The stage that produces it did not write a next_data_request key into this run's output.")}</div>`);
+  }
+  pane("cmp").innerHTML = `<div class="split">${parts.join("")}</div>`;
+}
+renderCompleteness();
+
+/* ------------------------------ interaction ----------------------------- */
 function pick(mx, my) {
-  let best = null, bd = 81;
+  let best = null, bd = 90;
   for (const n of D.nodes) {
     const d = (n.px - mx) ** 2 + (n.py - my) ** 2;
     if (d < bd) { bd = d; best = n; }
@@ -223,76 +792,38 @@ cv.addEventListener("mousemove", e => {
   const h = pick(e.clientX - r.left, e.clientY - r.top);
   if (h !== hovered) { hovered = h; cv.style.cursor = h ? "pointer" : "crosshair"; draw(); }
 });
-cv.addEventListener("click", () => { if (hovered) { document.getElementById("q").value = hovered.id; select(hovered.id); } });
+cv.addEventListener("click", () => {
+  if (hovered) { document.getElementById("q").value = hovered.id; select(hovered.id); }
+});
 document.getElementById("q").addEventListener("input", e => {
   const v = e.target.value.trim();
   if (v.length >= 6) select(v);
-  else { selected = null; highlightEdges = new Set(); highlightNodes = new Set(); draw(); }
+  else {
+    selected = null; breakNode = null;
+    hlNodes = new Set(); hlEdges = new Set();
+    document.getElementById("card").innerHTML = "";
+    draw();
+  }
 });
-
-/* ---------------------------- tables ---------------------------- */
-const pane = p => document.querySelector(`.pane[data-p="${p}"]`);
-const tbl = (cols, rows, onclick) => `<table><thead><tr>${
-  cols.map(c => `<th${c.num ? ' class="num"' : ""}>${c.h}</th>`).join("")
-}</tr></thead><tbody>${rows.map(r => `<tr data-gid="${r._gid ?? ""}">${
-  cols.map(c => `<td class="${c.num ? "num " : ""}${c.wrap ? "wrap" : ""}">${c.f(r)}</td>`).join("")
-}</tr>`).join("")}</tbody></table>`;
-
-pane("top").innerHTML = tbl(
-  [{ h: "#", f: r => r.rank, num: 1 }, { h: "client", f: r => r.gid },
-   { h: "assessed as", f: r => `<span style="color:${COL[r.role]}">${r.role}</span>` },
-   { h: "priority", f: r => (+r.priority_score).toFixed(3), num: 1 },
-   { h: "reason", f: r => r.why, wrap: 1 }],
-  D.top.map(r => ({ ...r, _gid: r.gid })));
-
-pane("dis").innerHTML =
-  `<p class="hint" style="margin:0 0 .5rem">A plain centrality ranking promotes nodes that flow passes through.
-   It cannot tell a client collecting from many payers apart from a business paying many suppliers.
-   These are the nodes it puts near the top that the evidence rules push down, and why.</p>` +
-  tbl([{ h: "client", f: r => r.gid },
-       { h: "by centrality", f: r => "#" + r.rank_pagerank, num: 1 },
-       { h: "by evidence", f: r => "#" + r.rank_priority, num: 1 },
-       { h: "moved", f: r => "+" + r.rank_gap, num: 1 },
-       { h: "assessed as", f: r => `<span style="color:${COL[r.role]}">${r.role}</span>` },
-       { h: "why", f: r => r.evidence, wrap: 1 }],
-      (D.demoted || []).map(r => ({ ...r, _gid: r.gid })));
-
-pane("res").innerHTML =
-  `<p class="hint" style="margin:0 0 .5rem">A ranking is only worth having if acting on it changes the network.
-   Removing the top ranked clients in order:</p>` +
-  tbl([{ h: "clients removed", f: r => r.removed, num: 1 },
-       { h: "largest group left", f: r => fmt(r.largest_component), num: 1 },
-       { h: "separate fragments", f: r => fmt(r.n_components), num: 1 },
-       { h: "still reachable from known clients", f: r => fmt(r.nodes_reachable_from_seeds), num: 1 }],
-      D.resilience || []);
-
-pane("clu").innerHTML = tbl(
-  [{ h: "group", f: r => r.cluster_id, num: 1 },
-   { h: "clients", f: r => r.n_nodes, num: 1 },
-   { h: "known", f: r => r.n_seed, num: 1 },
-   { h: "moving inside", f: r => fmt(r.sum_kzt_internal) + " KZT", num: 1 },
-   { h: "what it looks like", f: r => r.hypothesis, wrap: 1 }],
-  D.clusters || []);
-
-pane("loop").innerHTML =
-  `<p class="hint" style="margin:0 0 .5rem">Money returning to a client it came from. Ordinary trade rarely does this.</p>` +
-  tbl([{ h: "client", f: r => r.gid_a }, { h: "and", f: r => r.gid_b },
-       { h: "one way", f: r => fmt(r.a_to_b_kzt), num: 1 },
-       { h: "back", f: r => fmt(r.b_to_a_kzt), num: 1 },
-       { h: "returned", f: r => (r.returned_share * 100).toFixed(0) + "%", num: 1 },
-       { h: "transfers", f: r => r.n_tx, num: 1 }],
-      (D.reciprocal || []).map(r => ({ ...r, _gid: r.gid_a })));
-
 document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
   document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t));
   document.querySelectorAll(".pane").forEach(p => p.toggleAttribute("data-on", p.dataset.p === t.dataset.p));
 });
 document.addEventListener("click", e => {
+  const fr = e.target.closest("tr[data-frm]");
+  if (fr) { selectFormation(+fr.dataset.frm); return; }
   const tr = e.target.closest("tr[data-gid]");
   if (tr && tr.dataset.gid) { document.getElementById("q").value = tr.dataset.gid; select(tr.dataset.gid); }
 });
 
+/* The screen opens on an answer rather than on an empty state. */
+if (!FORMS.length) {
+  const t = document.querySelector('.tab[data-p="top"]');
+  if (t) t.click();
+}
+paintLegend();
 resize();
-if (D.top.length) select(D.top[0].gid);
+if (FORMS.length) selectFormation(0);
+else if (has("top")) select(D.top[0].gid);
 </script>
 </html>

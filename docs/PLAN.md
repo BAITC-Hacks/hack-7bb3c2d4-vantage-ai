@@ -1,136 +1,224 @@
 # Money Graph: the build
 
-Four hours left. Rubric: compliance 25, technical 25, README and reproducibility 25, value 15,
-originality 10.
+Rubric, confirmed from the case doc: compliance 25, technical implementation 25, README and
+reproducibility 25, value 15, originality 10.
 
 ---
 
-## The product in one line
+## The pipeline as it was actually built
 
-**The analyst sees the bottom of the chain. This shows who is standing above it, and proves why.**
+`python3 run.py` is the whole thing. Raw parquet in, thirteen files out, 2.3 seconds measured on
+the build machine, against a five-minute budget. The plan that follows this section is the plan; this
+section is what came of it.
 
-## The five differentiators, in build order
+```
+data/*.parquet
+  -> dataio.load             graph built from nodes.parquet, never from the edge list
+  -> dataio.integrity_report the declared limitations measured rather than assumed
+  -> features.build          degrees, flows, pagerank, HITS, pass-through, dwell time
+  -> roles.assign            the rule bank, pure Python, no model calls
+  -> clusters.assign         Louvain seeded at 42, plus weakly connected components
+  -> priority.rank           weighted and documented, gives every node a priority_score
+  -> hypotheses.describe     one testable sentence per cluster, from that cluster's figures
+  -> flows / exhibits        reciprocal pairs, cycles, resilience, centrality disagreement
+  -> formations.build        needs roles and communities, so it runs after clusters.assign
+  -> completeness.build      needs priority_score, so it runs after priority.rank
+  -> viewdata.write          one graph.json for the review screen
+```
 
-Ranked by points per minute. Items 1 to 5 are the project. Everything after is a bonus.
+The ordering constraint is the only thing that is not free: formations reads the Louvain communities
+for its bridge rule, and completeness audits the real priority list rather than a second one it
+computes for itself. Both take `feats` as their roles frame, because by that point `feats` carries
+the role, the community and the priority score and there is no separate roles table to pass.
 
-### 1. Answer the organisers' four traps explicitly. 45 minutes. Pays: compliance 25.
+### What lands in out/
 
-The starter README lists four traps "on which naive solutions break". That is the marking scheme written
-down. Give each one a named section in the README and a line of code it maps to.
+| File | Rows | What it is |
+|---|---:|---|
+| `nodes_roles.csv` | 2,248 | Required. One row per declared node, a role and the numbers it fired on. |
+| `clusters.csv` | 91 | Required. Communities with a plain-language hypothesis. |
+| `top_nodes.csv` | 25 | Required, minimum 20. Ranked priority targets. |
+| `formations.csv` | 653 | Ranked structures with their breaking points. See `docs/FORMATIONS.md`. |
+| `formation_members.csv` | 4,752 | Who is in each formation and what they do in it. |
+| `completeness.csv` | 2,248 | Per-node observation state and confidence. See `docs/COMPLETENESS.md`. |
+| `next_data_request.csv` | 5 | What to ask the data owner for next, ranked by what it would resolve. |
+| `integrity.json` | - | The measured limitation figures printed at run time. |
+| `reciprocal_pairs.csv` | 177 | Optional scoring item. |
+| `cycles.csv` | 1,541 | Optional scoring item. |
+| `resilience.csv` | 6 | Optional scoring item, the removal test. |
+| `pagerank_vs_evidence.csv` | 15 | The false positive exhibit. |
+| `graph.json` | - | 2.95 MB, everything the review screen reads. |
 
-| Trap | Your answer |
-|---|---|
-| `out_deg == 0` does not mean the money settled | Split by depth. 1,110 genuine terminals at depth under 4, 444 unknown at depth 4. Separate role for each |
-| Seed `in_kzt` is understated by the crawl design | Never score seeds on inflow. Seed roles use outflow and fan-out only. Say so |
-| Sums and transaction counts are different signals | Every role rule uses both. A single 4M transfer and forty 100k transfers get different roles |
-| The graph is directed and weighted | All metrics directed and weighted. Louvain runs on the undirected projection, and the README says explicitly what that loses |
+`run.py` asserts the row count, the non-empty evidence and the minimum top-list size, and now also
+asserts that every formation has members, that every breaking point is a node in the crawl, that
+completeness covers all 2,248 nodes and that confidence lies in 0..1. The assertions exist to fail
+the run rather than to let a blank panel reach the screen.
 
-No other team will structure their README around the organisers' own trap list.
+### graph.json
 
-### 2. All 2,248 rows, including the 19 isolated nodes. 10 minutes. Pays: compliance 25.
+The review screen finds two of its tables by record shape rather than by key name, because the
+stages that produce them were written separately. `formation_members` is the only top level array
+carrying both `formation_id` and `gid`; `node_completeness` is the only one carrying `gid` alongside
+`confidence` and `knowledge_state`. Nothing else may be given either shape.
 
-Build from `nodes.parquet`, left-join metrics. The 19 with no edges get their own role. A mechanical
-check on row count is the easiest way to lose points today.
+Every client id leaves as a string, including `breaking_point_gid` inside the formations array and
+the ids inside `leadChains`. An 18-digit id exceeds `Number.MAX_SAFE_INTEGER`, so two different
+accounts compare equal the moment either one is parsed as a number. `viewdata._pyify` casts every
+numpy scalar to a Python type on the way out, because `json.dumps` will not, and its `default=`
+hook would quietly turn a numpy integer into a JSON string.
 
-### 3. Evidence as numbers, and an abstention class. 45 minutes. Pays: compliance, originality.
+### Determinism
 
-The spec says `evidence` must contain numbers, not "high score". So every row carries the actual
-figures the rule fired on: in_kzt, out_kzt, in_deg, out_deg, pass_through, dwell_days, depth.
+The case requires the same input to give the same output. Five consecutive runs now produce
+byte-identical files in `out/`, and a copy of the repo with `out/` and every `__pycache__` removed
+produces the same thirteen files with the same checksums.
 
-Then add a sixth outcome the taxonomy does not require: **insufficient evidence**. Nodes with
-conflicting signals, or too few transactions for a stable ratio, get no role and a stated reason. Report
-the count.
+One thing had to be settled to get there. `networkx.hits` computes the two HITS columns with a
+sparse SVD, and scipy seeds that solver's starting vector from a fresh generator when the caller
+supplies none, so `authority_score` and `hub_score` differed in their last digits between runs and
+`nodes_roles.csv` was never the same file twice. The spread was measured at up to 1.4e-15 in
+absolute terms. This was first handled downstream, by quantising both columns in `run.py` before
+any rule, rank or evidence string read them. That workaround has since been removed in favour of
+the tidier fix it pointed at: `features.py` now passes an explicit `nstart` into `nx.hits`, so the
+solver starts from a fixed vector and the noise never enters the pipeline at all. Nothing
+downstream has to compensate for it any more.
 
-You are scored on justification, not accuracy, because there is no ground truth. A system that knows
-what it cannot tell you is the strongest possible answer to that.
+### Open against the real data
+
+Nothing outstanding. Two defects in `tools/figures.py` were recorded here and have since been
+fixed: the closing caption on `docs/img/formations.png` was one unwrapped `fig.text` line that
+overran the canvas, and the longest row label on that figure reached almost to the left edge.
+Both are wrapped and inside the margins now.
+
+---
+
+## Stack: switch to Python. I am reversing my earlier advice.
+
+I told you to stay in TypeScript, on the basis of keeping your scaffold and one runtime. Having read
+the full spec, that was the wrong call. Four reasons.
+
+1. **The optional scoring list maps one-to-one onto networkx one-liners.** Cycles and return flows,
+   network resilience under removal of the top N nodes, repeated routes, temporal transit. That is
+   `simple_cycles`, `articulation_points`, `all_simple_paths`, `immediate_dominators`. In graphology I
+   would be hand-rolling most of them, including HITS, which is the single metric that separates
+   collectors from distributors on this data.
+2. **The starter does the boilerplate and the sanity checks**, including printing the orphan-node
+   warning. That is 45 minutes you do not spend.
+3. **The organisers recommend Python** and the jury expects it. The technical criterion checks that the
+   implementation matches the claimed logic, which is easier to demonstrate in the idiom they read fluently.
+4. **The viewer can be anything.** "Веб-страница, ноутбук или desktop, на усмотрение команды." A
+   notebook counts. A Flask or FastAPI page counts.
+
+Reproducibility stays one runtime and one command: `pip install -r requirements.txt && python run.py`.
+
+The Node scaffold was built for Track 11 and is one commit of boilerplate. Let it go. Keep the repo,
+keep the git history, add a Python tree alongside and delete the Track 11 pieces.
+
+---
+
+## The five things that decide this
+
+### 1. Answer the seven declared limitations by name. 45 minutes. Pays: compliance 25.
+
+The spec says accounting for the declared data defects **is scored**. Give each one a named README
+section and the code path that handles it. Nobody structures their README around the organisers' own
+defect list.
+
+The headline one: **1,110 genuine terminals versus 444 truncated by crawl depth.** Depth under 4 with no
+outgoing means the crawl would have followed them and found nothing, so they are real. Depth 4 means
+unknown. A naive rule produces 444 false terminals and the spec says so in advance.
+
+### 2. All 2,248 rows, evidence with numbers, under 200 characters. 20 minutes. Pays: compliance 25.
+
+Build from `nodes.parquet`, left-join metrics. The 19 isolated nodes are seeds with no transfers in the
+window: give them their own honest classification. The starter prints this warning, so it is a
+correctness check rather than a secret, but it is still the fastest way to fail a row count.
+
+### 3. The gid card, because must-have 3 is a live oral exam. 45 minutes. Pays: compliance, demo.
+
+The jury names three arbitrary gids and you have a minute each to justify the role from your metrics.
+Build a screen where Karina types a gid and gets: the role, the rule that fired, the numbers it fired
+on, the neighbours, and the path back to a seed. She reads it off the screen rather than reasoning live.
+
+Same component satisfies must-have 5: search by gid, highlight on the diagram, show connections.
 
 ### 4. The false positive exhibit. 40 minutes. Pays: technical 25, value 15, originality 10.
 
-PageRank and HITS have zero overlap in their top five. Pick a node that ranks near the top on weighted
-PageRank, show that it is a legitimate high-volume hub (regular small payments, low pass-through, long
-dwell), and show your evidence score correctly demoting it.
+PageRank and HITS have zero overlap in their top five. Show a node that ranks top on weighted PageRank,
+demonstrate it is a legitimate high-volume hub, and show your evidence score demoting it. Two columns:
+what centrality says, what the evidence says.
 
-One screen, two columns, "what centrality says" and "what the evidence says". This is the single most
-persuasive thing you can build today, and it directly answers the jury question about whether the tool
-is doing real work.
+This is also your answer to "is this a black box", which the spec forbids.
 
-### 5. Dwell time instead of pass-through. 45 minutes. Pays: technical 25.
+### 5. An abstention class. 30 minutes. Pays: originality, compliance.
 
-The naive transit rule, pass-through near 1, returns zero nodes on this data. Dwell time returns 448
-nodes that move money within a day. Open `transactions.parquet`, compute the lag between first inbound
-and first outbound per node, and use it as the primary transit evidence.
+The six-role dictionary is a stated minimum and teams may extend it if documented. Add a seventh
+outcome for nodes whose signals conflict or that have too few transactions for a stable ratio. Report
+the count and the reason.
 
-Document that you tried the obvious rule, that it found nothing, and why. That paragraph is worth more
-than the feature.
+With no ground truth and scoring on soundness of criteria, a system that states what it cannot tell you
+is the strongest available position. It also fits the spec's demand that findings be framed as
+hypotheses rather than accusations.
 
-### Then, if time allows, in this order
+### Then, in order
 
-**6. The split screen. 30 minutes.** One seed client. Left: what the analyst sees today, hop 1 only,
-dead end. Right: the four-hop reconstruction with the ranked target above it. This is the demo.
+**6. Clusters that mean something. 30 min.** Raw Louvain gives 70 communities, mostly noise. The 9 with
+more than one seed, sizes 142 down to 5, are the story. The 16 weakly connected components are a free
+hard structural split. Show both, explain the difference, write a real `hypothesis` per cluster.
 
-**7. Triage ranking with a cost model. 40 minutes.** Rank by structural importance times money reachable
-downstream, and show score-per-investigator-hour next to raw score. Investigators have finite hours.
+**7. Dwell time. 40 min.** 448 of 671 two-way nodes move money within a day. Listed as an optional
+scoring item. Needs `transactions.parquet`, which most teams will not open.
 
-**8. Clustering shown two ways. 40 minutes.** The 16 weakly connected components are a hard structural
-split you get for free. Louvain gives 91 soft communities. Show both, explain why they differ, and put
-the honest one in `cluster_id`.
+**8. Cycles and reciprocity. 25 min.** 177 reciprocal pairs, 1,541 cycles under length 6. Another
+optional item, one call.
 
-**9. Reciprocity and cycles. 30 minutes.** 177 pairs send money both ways, 1,541 cycles under length 6.
-`simple_cycles` with a length bound finds them instantly.
+**9. Network resilience. 30 min.** "Что произойдёт с сетью при изъятии топ-N узлов." Remove your top 10
+and report how the giant component fragments. Optional item, and it turns a ranking into an operational
+recommendation.
 
-**Cut first if behind:** anything temporal beyond dwell time, any animation, any structural embedding.
+**10. Triage with a cost model. 30 min.** Rank by structural importance times money reachable downstream,
+and show score per investigator hour beside raw score.
+
+**Cut first:** anything animated, any embedding method, any ML model.
 
 ---
 
-## Stack, settled and tested
+## Two mandatory artefacts people forget
 
-Stay in TypeScript, keep the scaffold. Verified against the real files: parquet read, graph build,
-weighted PageRank and Louvain all run in **186 ms** total.
+**The solution schema.** One slide or diagram: data to metrics to roles to interface. It is on the
+required artefact list. Make it at hour four, export a PNG, commit it.
 
-```bash
-npm i hyparquet hyparquet-compressors graphology graphology-metrics graphology-communities-louvain
-```
-
-- `parquetReadObjects({ file, compressors })`. Without `compressors` it throws on the codec.
-- `gid` is a **BigInt**. `String(r.gid)` everywhere, never `JSON.stringify` a raw row.
-- HITS is not in graphology. Fifteen lines of power iteration, or derive collector and distributor
-  scores from weighted in and out flow, which is more explainable anyway.
-
-One runtime, one `npm ci`, one command. The must-have is raw parquet to three CSVs in under five
-minutes, and you will do it in under a second.
+**The scaling section in the README.** What changes at roughly 1 million nodes. Text only. Say it
+honestly: pandas and networkx stop fitting in memory, you move to a columnar store and a graph engine,
+PageRank and Louvain become distributed, the per-node LLM explanation becomes a batch job over the top
+N rather than all nodes, and the rules themselves do not change because they are thresholds on local
+metrics. Four sentences, and almost nobody will write it.
 
 ---
 
 ## The README, which is 25 points
 
-Structure it around the organisers' eleven headings, and put these in:
+Organisers' eleven headings, plus these:
 
-1. **Measured timing at the top.** Run it, paste the literal stdout with the wall-clock time and the
-   three row counts. Judges who do not re-run still see it.
-2. **A threshold table.** Every role, its rule, its numeric cutoff, and why that cutoff. Not in code
-   comments, in the README.
-3. **The four traps section.** Each trap, your answer, the code path.
-4. **What we tried that did not work.** Pass-through near 1 finds zero nodes. Almost nobody writes this
-   section and it reads as competence.
-5. **Blind spots, stated plainly.** Outbound-only collection means anything upstream of the 81 seeds is
-   invisible by construction. No KYC, no beneficial ownership, no account-type data. The 5,000 KZT floor
-   makes small structuring undetectable.
-6. **Evaluation philosophy.** There is no ground truth, so state how you justify a role rather than
-   claiming accuracy.
+1. **Measured timing at the top**, literal stdout from a real run with the three row counts.
+2. **A threshold table**: every role, its rule, its numeric cutoff, why that cutoff. In the README, not
+   in code comments. Must-have 3 depends on it.
+3. **The seven declared limitations**, each with your handling.
+4. **What we tried that did not work**, with numbers.
+5. **Scaling to 1 million nodes.**
+6. **Evaluation philosophy**: no ground truth, so justification rather than accuracy.
+7. **Wording**: hypotheses for checking, never assertions of guilt. Check the whole README for this.
 
 ---
 
-## Demo, ninety seconds
+## Demo, 5 minutes
 
-Load. The ranked list appears with roles and evidence. Click the top node: the evidence numbers, the
-rule that fired, the path the money took to reach it. Then the split screen, what the analyst sees
-against what you reconstructed. Then the false positive: the PageRank favourite, demoted, with the
-reason. Then a node the tool refuses to classify, and why.
+Live run from raw parquet, timed on screen. The ranked list. Then two or three nodes in substance, which
+is what the spec asks for. Then hand Karina the gid box and let the jury pick. Then the false positive.
+Then a node the tool refuses to classify.
 
-Never say the word accuracy.
+Open with the line that is actually true and slightly startling: **31 of the 81 clients law enforcement
+gave us are dead ends in this data. The network is 2,248 nodes and the people who matter are not on
+their list.**
 
-## Repo repointing, do this first
-
-The scaffold is described as Track 11. Change `package.json` description, drop `mammoth`, add the five
-packages above, and update `AGENTS.md` to say Money Graph. Five minutes, and it stops Codex writing
-document-diff code.
+Never say accuracy. Never say guilty.

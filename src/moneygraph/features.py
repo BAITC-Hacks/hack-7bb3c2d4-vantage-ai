@@ -25,9 +25,19 @@ def build(d: Dataset) -> pd.DataFrame:
 
     # HITS separates who collects from who distributes. PageRank does not, and on this
     # data the two disagree completely in their top ranks.
-    hubs, auth = nx.hits(g, max_iter=1000, normalized=True)
-    df["hub_score"] = m(hubs, 0.0)
-    df["authority_score"] = m(auth, 0.0)
+    #
+    # nstart is supplied because networkx hands it to scipy as the ARPACK starting vector
+    # (v0). Left as None, scipy 1.17 draws that vector from fresh OS entropy on every call
+    # and the last digits of both columns move between runs, so the required outputs would
+    # not be byte-identical. A uniform vector over the nodes in sorted order is a fixed,
+    # inspectable starting point that carries no preference for any account.
+    nstart = {n: 1.0 / g.number_of_nodes() for n in sorted(g.nodes)}
+    hubs, auth = nx.hits(g, max_iter=1000, nstart=nstart, normalized=True)
+    # Adding zero collapses the signed zero the sparse solver returns for nodes with no
+    # edges on that side: -0.0 and 0.0 are the same number but reach the CSV as different
+    # strings. Every other value is returned unchanged, bit for bit.
+    df["hub_score"] = m(hubs, 0.0) + 0.0
+    df["authority_score"] = m(auth, 0.0) + 0.0
 
     df["pass_through"] = np.where(df.in_kzt > 0, df.out_kzt / df.in_kzt.replace(0, np.nan), np.nan)
 
