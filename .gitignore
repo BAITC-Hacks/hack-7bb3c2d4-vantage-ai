@@ -7,3 +7,5 @@ venv/
 out/
 .idea/
 .ipynb_checkpoints/
+.vscode/
+.pytest_cache/
