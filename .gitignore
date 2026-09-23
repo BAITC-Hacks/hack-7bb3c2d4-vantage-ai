@@ -1,8 +1,9 @@
-node_modules/
-/dist/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
 .env
-.env.*
-!.env.example
 .DS_Store
-*.log
-# client/dist is committed on purpose so a judge never has to build the frontend
+out/
+.idea/
+.ipynb_checkpoints/

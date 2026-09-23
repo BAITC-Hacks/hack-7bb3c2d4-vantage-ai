@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Money Graph review</title>
+<style>
+  :root { --line:#d9dade; --muted:#6b6f76; --bg:#fff; --fg:#17181a; --accent:#1f6feb; }
+  body { font:15px/1.5 system-ui,-apple-system,sans-serif; margin:0; color:var(--fg); background:var(--bg); }
+  header { padding:1rem 1.5rem; border-bottom:1px solid var(--line); display:flex; gap:1rem; align-items:baseline; }
+  h1 { font-size:1.05rem; margin:0; font-weight:600; }
+  .muted { color:var(--muted); font-size:.85rem; }
+  main { display:grid; grid-template-columns:22rem 1fr; min-height:calc(100vh - 3.6rem); }
+  aside { border-right:1px solid var(--line); padding:1rem 1.25rem; overflow:auto; }
+  section { padding:1rem 1.5rem; overflow:auto; }
+  input { width:100%; padding:.5rem .6rem; border:1px solid var(--line); border-radius:6px; font:inherit; }
+  table { border-collapse:collapse; width:100%; font-size:.86rem; }
+  th,td { text-align:left; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  th { font-weight:600; color:var(--muted); font-size:.78rem; text-transform:uppercase; letter-spacing:.03em; }
+  tr:hover td { background:#f6f7f9; cursor:pointer; }
+  .card { border:1px solid var(--line); border-radius:8px; padding:1rem; margin-bottom:1rem; }
+  .k { color:var(--muted); font-size:.8rem; }
+  .v { font-variant-numeric:tabular-nums; }
+  code { background:#f2f3f5; padding:.1rem .3rem; border-radius:4px; }
+</style>
+<header>
+  <h1>Money Graph</h1>
+  <span class="muted" id="meta">loading…</span>
+</header>
+<main>
+  <aside>
+    <label class="k" for="q">Find a client by gid</label>
+    <input id="q" placeholder="e.g. 100000002224132100" autocomplete="off">
+    <div id="card"></div>
+  </aside>
+  <section>
+    <h2 style="font-size:.95rem;margin:.2rem 0 .8rem">Investigation priority</h2>
+    <table id="top"><thead><tr><th>#</th><th>gid</th><th>role</th><th>score</th><th>why</th></tr></thead><tbody></tbody></table>
+  </section>
+</main>
+<script type="module">
+// TODO replace with the network diagram. The gid search and the node card are the two
+// things the jury tests directly, so they come first.
+const csv = async (p) => {
+  const t = await (await fetch(p)).text();
+  const [h, ...rows] = t.trim().split("\n");
+  const cols = h.split(",");
+  return rows.map(r => {
+    const v = r.match(/("([^"]|"")*"|[^,]*)/g).filter((_, i) => i % 2 === 0);
+    return Object.fromEntries(cols.map((c, i) => [c, (v[i] ?? "").replace(/^"|"$/g, "").replace(/""/g, '"')]));
+  });
+};
+const nodes = await csv("../out/nodes_roles.csv");
+const top = await csv("../out/top_nodes.csv");
+const by = new Map(nodes.map(n => [n.gid, n]));
+document.getElementById("meta").textContent = `${nodes.length} nodes · ${top.length} ranked`;
+
+const tb = document.querySelector("#top tbody");
+tb.innerHTML = top.map(r => `<tr data-gid="${r.gid}"><td>${r.rank}</td><td>${r.gid}</td><td>${r.role}</td><td class="v">${(+r.priority_score).toFixed(3)}</td><td>${r.why}</td></tr>`).join("");
+tb.addEventListener("click", e => { const tr = e.target.closest("tr"); if (tr) show(tr.dataset.gid); });
+
+const fmt = n => Number(n).toLocaleString("en-GB", { maximumFractionDigits: 0 });
+function show(gid) {
+  const n = by.get(String(gid));
+  const el = document.getElementById("card");
+  if (!n) { el.innerHTML = `<p class="muted">No client with gid ${gid} in this dataset.</p>`; return; }
+  el.innerHTML = `<div class="card">
+    <div class="k">gid</div><div class="v">${n.gid}</div>
+    <div class="k" style="margin-top:.6rem">role</div><div><b>${n.role}</b> <span class="muted">score ${(+n.role_score).toFixed(2)}</span></div>
+    <div class="k" style="margin-top:.6rem">why</div><div>${n.evidence}</div>
+    <div class="k" style="margin-top:.6rem">flows</div>
+    <div class="v">in ${fmt(n.in_kzt)} KZT from ${n.in_deg} · out ${fmt(n.out_kzt)} KZT to ${n.out_deg}</div>
+    <div class="k" style="margin-top:.6rem">position</div>
+    <div class="v">hop ${n.depth}${n.is_seed === "True" ? " · seed" : ""} · cluster ${n.cluster_id} · component ${n.component_id}</div>
+  </div>`;
+}
+document.getElementById("q").addEventListener("input", e => {
+  const v = e.target.value.trim();
+  if (v.length >= 4) show(v);
+});
+if (top.length) show(top[0].gid);
+</script>
+</html>
