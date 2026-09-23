@@ -6,6 +6,57 @@ const TRAIL_DAYS = 3;
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July",
   "August", "September", "October", "November", "December"];
 
+/* UI strings. api.lang is "en" | "ru" | "kk"; anything else falls back to English. */
+const T = {
+  en: {
+    play: "Play",
+    pause: "Pause",
+    trail: "Trail",
+    kztMoved: "KZT moved",
+    transfers: "transfers",
+    activeAccounts: "active accounts",
+    knownClients: "known clients",
+    hop: "hop {n}",
+    hintSelect: "click a node to select",
+    hintMock: "mock days (D.days missing)",
+    dayOfMonth: "Day of month",
+    barTitle: "{date} — {kzt} KZT, {n} transfers",
+    locale: "en-GB",
+  },
+  ru: {
+    play: "Воспроизвести",
+    pause: "Пауза",
+    trail: "След",
+    kztMoved: "переведено, KZT",
+    transfers: "переводов",
+    activeAccounts: "активных счетов",
+    knownClients: "известные клиенты",
+    hop: "шаг {n}",
+    hintSelect: "нажмите на узел, чтобы выбрать",
+    hintMock: "демо-дни (D.days отсутствует)",
+    dayOfMonth: "День месяца",
+    barTitle: "{date} — {kzt} KZT, переводов: {n}",
+    locale: "ru-RU",
+  },
+  kk: {
+    play: "Ойнату",
+    pause: "Кідірту",
+    trail: "Із",
+    kztMoved: "аударылды, KZT",
+    transfers: "аударым",
+    activeAccounts: "белсенді шоттар",
+    knownClients: "белгілі клиенттер",
+    hop: "{n}-қадам",
+    hintSelect: "таңдау үшін түйінді басыңыз",
+    hintMock: "демо күндер (D.days жоқ)",
+    dayOfMonth: "Айдың күні",
+    barTitle: "{date} — {kzt} KZT, аударым: {n}",
+    locale: "kk-KZ",
+  },
+};
+const t = (k, lang) => (T[lang] || T.en)[k] ?? T.en[k] ?? k;
+const _fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, v) => (vars[v] ?? ""));
+
 const CSS = `
 .replay{display:flex;flex-direction:column;gap:10px;min-height:560px;font:14px/1.4 var(--body);color:var(--fg);
   font-variant-numeric:tabular-nums;box-sizing:border-box}
@@ -33,6 +84,25 @@ const CSS = `
 .replay .rp-stage{position:relative;flex:1 1 auto;min-height:420px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);overflow:hidden}
 .replay .rp-stage canvas{display:block;width:100%;height:100%}
 .replay .rp-hint{position:absolute;right:10px;bottom:6px;font:11px/1 var(--mono);color:var(--muted);pointer-events:none}
+/* phone: controls wrap onto rows (play · date · trail / slider / figures); bars keep a tall hit area */
+@media (max-width:640px){
+  .replay{min-height:0;gap:8px}
+  .replay .rp-row{gap:8px 10px}
+  .replay .rp-btn{min-height:36px;padding:8px 12px}
+  .replay .rp-date{font-size:20px;min-width:0;flex:1 1 auto}
+  .replay .rp-range{order:5;flex:1 1 100%;min-width:0;height:36px}
+  .replay .rp-range::-webkit-slider-runnable-track{margin-top:0}
+  .replay .rp-range::-webkit-slider-thumb{width:22px;height:22px;margin-top:-9px}
+  .replay .rp-range::-moz-range-thumb{width:22px;height:22px}
+  .replay .rp-figs{order:6;flex:1 1 100%;margin-left:0;justify-content:space-between;gap:8px}
+  .replay .rp-fig{min-width:0}
+  .replay .rp-fig b{font-size:15px}
+  .replay .rp-fig span{font-size:10px;white-space:normal}
+  .replay .rp-spark{height:48px;gap:1px;padding:4px 4px 0;align-items:flex-end}
+  .replay .rp-bar{position:relative;min-width:0}
+  .replay .rp-bar::after{content:"";position:absolute;left:-1px;right:0;top:-44px;bottom:0}
+  .replay .rp-stage{min-height:300px}
+}
 `;
 
 /* ------------------------------ helpers ------------------------------ */
@@ -88,7 +158,11 @@ export function replayFacts(D) {
   return { busiestDay: { date: busiest.date, kzt: busiest.kzt, n_tx: busiest.n_tx }, quietDays, medianKzt };
 }
 
-function _prettyDate(iso) {
+function _prettyDate(iso, locale) {
+  const dt = new Date(String(iso) + "T00:00:00");
+  if (!Number.isNaN(dt.getTime())) {
+    try { return dt.toLocaleDateString(locale || "en-GB", { day: "numeric", month: "long" }); } catch (_) { /* fall through */ }
+  }
   const [, m, d] = String(iso).split("-").map(Number);
   return `${d} ${MONTHS[(m || 7) - 1]}`;
 }
@@ -118,18 +192,21 @@ export function mountReplay(container, D, api) {
   const days = _days(D);
   const N = days.length;
   const usingMock = !(Array.isArray(D.days) && D.days.length);
-  const fmt = api.fmt || (n => Number(n).toLocaleString("en-GB", { maximumFractionDigits: 0 }));
+  const lang = T[api.lang] ? api.lang : "en";
+  const s = k => t(k, lang);
+  const locale = s("locale");
+  const fmt = api.fmt || (n => Number(n).toLocaleString(locale, { maximumFractionDigits: 0 }));
 
   /* controls */
   const row = document.createElement("div"); row.className = "rp-row";
-  const play = document.createElement("button"); play.className = "rp-btn"; play.type = "button"; play.textContent = "Play";
+  const play = document.createElement("button"); play.className = "rp-btn"; play.type = "button"; play.textContent = s("play");
   const range = document.createElement("input"); range.className = "rp-range"; range.type = "range";
-  range.min = "1"; range.max = String(N); range.step = "1"; range.value = "1"; range.setAttribute("aria-label", "Day of month");
+  range.min = "1"; range.max = String(N); range.step = "1"; range.value = "1"; range.setAttribute("aria-label", s("dayOfMonth"));
   const dateEl = document.createElement("div"); dateEl.className = "rp-date";
   const figs = document.createElement("div"); figs.className = "rp-figs";
   const mkFig = label => { const f = document.createElement("div"); f.className = "rp-fig"; const b = document.createElement("b"); const s = document.createElement("span"); s.textContent = label; f.append(b, s); figs.appendChild(f); return b; };
-  const fKzt = mkFig("KZT moved"), fTx = mkFig("transfers"), fAct = mkFig("active accounts");
-  const trail = document.createElement("button"); trail.className = "rp-btn"; trail.type = "button"; trail.textContent = "Trail";
+  const fKzt = mkFig(s("kztMoved")), fTx = mkFig(s("transfers")), fAct = mkFig(s("activeAccounts"));
+  const trail = document.createElement("button"); trail.className = "rp-btn"; trail.type = "button"; trail.textContent = s("trail");
   trail.setAttribute("aria-pressed", "true");
   row.append(play, range, dateEl, trail, figs);
 
@@ -138,7 +215,7 @@ export function mountReplay(container, D, api) {
   const bars = days.map((d, i) => {
     const b = document.createElement("button"); b.className = "rp-bar"; b.type = "button";
     b.style.height = `${Math.max(2, Math.round(((d.kzt || 0) / maxKzt) * 32))}px`;
-    b.title = `${_prettyDate(d.date)} — ${fmt(d.kzt || 0)} KZT, ${d.n_tx || 0} transfers`;
+    b.title = _fill(s("barTitle"), { date: _prettyDate(d.date, locale), kzt: fmt(d.kzt || 0), n: fmt(d.n_tx || 0) });
     b.addEventListener("click", () => { setDay(i); });
     spark.appendChild(b); return b;
   });
@@ -146,7 +223,7 @@ export function mountReplay(container, D, api) {
   const stage = document.createElement("div"); stage.className = "rp-stage";
   const cv = document.createElement("canvas"); stage.appendChild(cv);
   const hint = document.createElement("div"); hint.className = "rp-hint";
-  hint.textContent = usingMock ? "mock days (D.days missing)" : "click a node to select";
+  hint.textContent = usingMock ? s("hintMock") : s("hintSelect");
   stage.appendChild(hint);
   container.append(row, spark, stage);
 
@@ -229,7 +306,7 @@ export function mountReplay(container, D, api) {
     const padL = 88, padR = 80;
     for (let h = 0; h <= maxHop; h++) {
       const x = padL + (W - padL - padR) * (h / maxHop);
-      ctx.fillText(h === 0 ? "known clients" : `hop ${h}`, x, 10);
+      ctx.fillText(h === 0 ? s("knownClients") : _fill(s("hop"), { n: h }), x, 10);
     }
 
     // inactive nodes, dim
@@ -267,7 +344,7 @@ export function mountReplay(container, D, api) {
     day = Math.max(0, Math.min(N - 1, i));
     const d = days[day];
     if (!fromRange) range.value = String(day + 1);
-    dateEl.textContent = _prettyDate(d.date);
+    dateEl.textContent = _prettyDate(d.date, locale);
     fKzt.textContent = fmt(d.kzt || 0);
     fTx.textContent = fmt(d.n_tx || 0);
     fAct.textContent = fmt(d.active ?? dayActive[day].size);
@@ -285,7 +362,7 @@ export function mountReplay(container, D, api) {
     raf = requestAnimationFrame(tick);
   }
   function setPlaying(v) {
-    playing = v; play.textContent = v ? "Pause" : "Play"; play.setAttribute("aria-pressed", v ? "true" : "false");
+    playing = v; play.textContent = v ? s("pause") : s("play"); play.setAttribute("aria-pressed", v ? "true" : "false");
     cancelAnimationFrame(raf); last = 0; acc = 0;
     if (v) raf = requestAnimationFrame(tick);
   }

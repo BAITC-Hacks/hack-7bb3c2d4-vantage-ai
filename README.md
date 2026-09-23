@@ -224,6 +224,12 @@ test.
 framework, no build step, no request to anything but its own `graph.json`. It is laid out as a case
 file: seven numbered sections in a rail, one search box that takes an account id from anywhere.
 
+**Deploying without Python.** The screen is static: it needs only `web/` and `out/` next to each
+other, and `out/graph.json` is committed. It runs from GitHub Pages (Settings → Pages → Deploy
+from a branch → `main`, `/ (root)`) or from any static host pointed at the repository root; the
+root `index.html` redirects to `web/`, and `.nojekyll` keeps Pages from filtering the folders. The
+pipeline is only needed to regenerate `out/`.
+
 | | Section | What it holds |
 |---|---|---|
 | 01 | The case in one screen | The six figures of the extract, three accounts and three structures to start with, the busiest day, the echo count, the crawl boundary count |
@@ -289,7 +295,7 @@ and non-empty, `graph.json` parsed back with the keys the screen reads. A broken
 | `echoes.csv` | 203 | Money that left an account in the shape it arrived: relays, splits, fan splits |
 | `timeline.csv` | 4,286 | The month unfolded by day, what the replay plays |
 | `reciprocal_pairs.csv`, `cycles.csv` | 177, 1,541 | Return flows and closed loops up to six hops |
-| `graph.json`, `integrity.json` | | The review screen's data and the integrity report |
+| `graph.json`, `integrity.json` | | The review screen's data (committed, so the screen deploys as a static site) and the integrity report |
 
 ---
 

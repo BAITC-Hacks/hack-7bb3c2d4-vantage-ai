@@ -1,31 +1,43 @@
 <!doctype html>
-<html lang="en-GB">
+<html lang="ru">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Money Graph · HackAlem</title>
+<title>Money Graph</title>
 <style>
 /* ------------------------------------------------------------------ *
- * HackAlem palette. Every colour on this page is a token declared here.
- * Amber is reserved for the one thing that matters most on a view.
- * No green anywhere. Green belongs to Astana Hub, not to HackAlem.
+ * Two schemes, both from tokens. "paper" is the default: a case file
+ * reads on paper, and an analyst works in daylight. "dark" is the
+ * HackAlem stage scheme for a projector. Every colour the canvases use
+ * is read from these tokens at draw time, so the switch is one attribute.
+ * No green anywhere: green belongs to Astana Hub, not to HackAlem.
  * ------------------------------------------------------------------ */
 :root{
-  --bg:#060B16; --panel:#0B1524; --sunk:#050912; --line:#16243A; --line-soft:#0F1B2C;
-  --fg:#EEF3FB; --muted:#8FA3BF; --primary:#00C8FF; --secondary:#009AF0; --amber:#FFB020;
-  --display:Manrope,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
-  --body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --bg:#F6F3EC; --panel:#FFFDF8; --sunk:#EFEBE1; --line:#D9D2C3; --line-soft:#E8E2D5;
+  --fg:#17150F; --muted:#6B6558; --primary:#0B5FA5; --secondary:#1E3A5F; --amber:#C2410C;
+  --display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 
-  --consolidator:#FF5C6C; --coordinator:#C77DFF; --transit:#00C8FF; --distributor:#009AF0;
-  --terminal:#7A8AA8; --peripheral:#4A5B75;
-  --abstained_boundary:#6B5FA6; --abstained_single_observation:#443C6E;
-  --steel:#5A6B87;
+  --consolidator:#B42318; --coordinator:#6D28D9; --transit:#0B5FA5; --distributor:#1D7A9C;
+  --terminal:#7A7466; --peripheral:#A8A093;
+  --abstained_boundary:#8B7BB8; --abstained_single_observation:#B3A9CC;
+  --steel:#9A937F;
 
+  --grid:rgba(11,95,165,.14); --grid-label:#7A7466;
+  --edge:rgba(23,21,15,.18); --edge-dim:rgba(23,21,15,.05); --edge-on:rgba(11,95,165,.9);
+  --arrow:rgba(11,95,165,.95); --ring:#17150F; --row-hover:rgba(11,95,165,.07);
+  --dot-edge:rgba(23,21,15,.25);
+  --rail:13.5rem; --top:3.6rem;
+}
+:root[data-theme=dark]{
+  --bg:#060B16; --panel:#0B1524; --sunk:#050912; --line:#16243A; --line-soft:#0F1B2C;
+  --fg:#EEF3FB; --muted:#8FA3BF; --primary:#00C8FF; --secondary:#009AF0; --amber:#FFB020;
+  --consolidator:#FF5C6C; --coordinator:#C77DFF; --transit:#00C8FF; --distributor:#009AF0;
+  --terminal:#7A8AA8; --peripheral:#4A5B75; --abstained_boundary:#6B5FA6; --abstained_single_observation:#443C6E;
+  --steel:#5A6B87;
   --grid:rgba(0,200,255,.10); --grid-label:#7C90AD;
   --edge:rgba(122,138,168,.22); --edge-dim:rgba(122,138,168,.06); --edge-on:rgba(0,200,255,.85);
-  --arrow:rgba(0,200,255,.90); --ring:#EEF3FB; --row-hover:rgba(0,200,255,.07);
-  --dot-edge:rgba(238,243,251,.28);
-  --rail:13.5rem; --top:3.6rem;
+  --arrow:rgba(0,200,255,.90); --ring:#EEF3FB; --row-hover:rgba(0,200,255,.07); --dot-edge:rgba(238,243,251,.28);
 }
 *{box-sizing:border-box}
 html{font-size:16px;scroll-behavior:smooth}
@@ -38,16 +50,19 @@ a{color:inherit;text-decoration:none}
 /* ------------------------------ frame ------------------------------ */
 .top{position:fixed;top:0;left:0;right:0;height:var(--top);display:flex;align-items:center;gap:1rem;padding:0 1.2rem;
      border-bottom:1px solid var(--line);background:var(--panel);z-index:10}
-.mark{display:flex;align-items:baseline}
-.mark b,.mark i{font:700 1.15rem/1 var(--display);font-style:normal}
-.mark i{color:var(--primary)}
+.mark{font:700 1.2rem/1 var(--display);letter-spacing:-.01em}
+.mark i{font-style:normal;color:var(--amber)}
 .case{padding-left:1rem;border-left:1px solid var(--line);font-size:.8125rem;color:var(--muted);line-height:1.25}
-.case b{display:block;color:var(--fg);font:600 .9375rem/1.25 var(--display)}
 .find{margin-left:auto;display:flex;align-items:center;gap:.5rem}
-.find input{width:19rem;padding:.45rem .7rem;border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--fg);
+.find input{width:19rem;padding:.45rem .7rem;border:1px solid var(--line);border-radius:4px;background:var(--sunk);color:var(--fg);
             font:.9375rem/1.2 var(--mono);font-variant-numeric:tabular-nums}
 .find input:focus{outline:none;border-color:var(--primary)}
 .find input::placeholder{color:var(--steel);font-family:var(--body)}
+.lang{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.lang button{padding:.4rem .6rem;font-size:.8rem;font-weight:700;letter-spacing:.06em;color:var(--muted);border-right:1px solid var(--line)}
+.lang button:last-child{border-right:0}
+.lang button[aria-pressed=true]{background:var(--fg);color:var(--bg)}
+.theme{padding:.4rem .6rem;border:1px solid var(--line);border-radius:4px;font-size:.8rem;color:var(--muted)}
 
 .rail{position:fixed;top:var(--top);bottom:0;left:0;width:var(--rail);border-right:1px solid var(--line);background:var(--panel);
       padding:1rem 0;overflow:auto}
@@ -66,81 +81,80 @@ section.page{display:none;padding:2rem 2.4rem 4rem;max-width:96rem}
 section.page[data-on]{display:block}
 .ph{display:flex;align-items:baseline;gap:1rem;margin:0 0 .4rem}
 .ph i{font:700 .9rem/1 var(--mono);font-style:normal;color:var(--amber);letter-spacing:.06em}
-.ph h2{margin:0;font:700 1.75rem/1.15 var(--display);letter-spacing:-.02em}
+.ph h2{margin:0;font:700 1.9rem/1.15 var(--display);letter-spacing:-.01em}
 .lede{color:var(--muted);max-width:70ch;line-height:1.55;margin:0 0 1.6rem;font-size:1rem}
 .lede b{color:var(--fg);font-weight:600}
 hr.rule{border:0;border-top:1px solid var(--line);margin:1.6rem 0}
 
 /* ------------------------------ ledger figures ------------------------------ */
-.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 0 2rem}
+.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:0;border-top:2px solid var(--fg);border-bottom:1px solid var(--line);margin:0 0 2rem}
 .ledger div{padding:1rem 1.2rem 1rem 0;border-right:1px solid var(--line-soft)}
 .ledger div:last-child{border-right:0}
-.ledger b{display:block;font:700 2.4rem/1 var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.ledger b{display:block;font:700 2.6rem/1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .ledger .amber b{color:var(--amber)}
 .ledger span{display:block;color:var(--muted);font-size:.85rem;margin-top:.35rem;line-height:1.35}
 
 /* ------------------------------ start cards ------------------------------ */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
-h3.sec{font:650 .8rem/1 var(--display);text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0 0 .8rem}
-.lead{display:block;border:1px solid var(--line);border-radius:10px;padding:.9rem 1rem;background:var(--panel);cursor:pointer}
+h3.sec{font:650 .78rem/1 var(--body);text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin:0 0 .8rem}
+.lead{display:block;border:1px solid var(--line);border-radius:4px;padding:.9rem 1rem;background:var(--panel);cursor:pointer;border-left:3px solid var(--line)}
 .lead:hover{border-color:var(--primary)}
-.lead .r{font:700 .8rem/1 var(--mono);color:var(--amber);margin-bottom:.4rem}
+.lead .r{font:700 .75rem/1 var(--mono);color:var(--amber);margin-bottom:.4rem;letter-spacing:.06em}
 .lead .g{font:600 1rem/1.2 var(--mono);word-break:break-all}
 .lead .w{font-size:.85rem;color:var(--muted);line-height:1.45;margin-top:.4rem}
 .lead .t{margin-top:.5rem}
 .fact{border-left:3px solid var(--primary);padding:.3rem .9rem;margin:.6rem 0}
-.fact b{font:700 1.4rem/1.1 var(--display);font-variant-numeric:tabular-nums}
+.fact b{font:700 1.5rem/1.1 var(--display);font-variant-numeric:tabular-nums}
 .fact span{display:block;color:var(--muted);font-size:.875rem;line-height:1.4}
 .go{display:inline-block;margin-top:.6rem;color:var(--primary);font-weight:600;font-size:.875rem}
 .go:after{content:" →"}
 
 /* ------------------------------ pills, stamps ------------------------------ */
-.pill{display:inline-block;padding:.1rem .55rem;border-radius:4px;font-size:.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-family:var(--display)}
-.chip{display:inline-block;margin:.2rem .3rem .2rem 0;padding:.25rem .6rem;border:1px solid var(--line);border-radius:6px;font-size:.8125rem;cursor:pointer;font-family:var(--mono)}
+.pill{display:inline-block;padding:.1rem .5rem;border-radius:2px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:var(--body);border:1px solid currentColor}
+.chip{display:inline-block;margin:.2rem .3rem .2rem 0;padding:.25rem .6rem;border:1px solid var(--line);border-radius:3px;font-size:.8125rem;cursor:pointer;font-family:var(--mono)}
 .chip:hover{border-color:var(--primary)}
 
 /* ------------------------------ review table ------------------------------ */
 table{border-collapse:collapse;width:100%;font-size:.9375rem}
 th,td{text-align:left;padding:.6rem .7rem;border-bottom:1px solid var(--line-soft);vertical-align:top}
-th{color:var(--muted);font-weight:650;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+th{color:var(--muted);font-weight:650;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;border-bottom:2px solid var(--fg)}
 td.wrap{color:var(--muted);line-height:1.45}
 tbody tr[data-gid]:hover td,tbody tr[data-frm]:hover td{background:var(--row-hover);cursor:pointer}
 td.right,th.right{text-align:right}
-.bar{display:inline-block;height:6px;border-radius:3px;background:var(--primary);vertical-align:middle;margin-right:.5rem}
+.bar{display:inline-block;height:6px;background:var(--primary);vertical-align:middle;margin-right:.5rem}
 .rank{font:700 1rem/1 var(--mono);color:var(--muted)}
 
 /* ------------------------------ account / structures layout ------------------------------ */
 .explore{display:grid;grid-template-columns:minmax(0,1fr) 25rem;gap:1.4rem;align-items:start}
-.mapwrap{border:1px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden;position:relative}
-.mapbar{display:flex;align-items:center;gap:.6rem;padding:.55rem .9rem;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+.mapwrap{border:1px solid var(--line);border-radius:4px;background:var(--panel);overflow:hidden;position:relative}
+.mapbar{display:flex;align-items:center;gap:.6rem;padding:.55rem .9rem;border-bottom:1px solid var(--line);background:var(--sunk);flex-wrap:wrap}
 .mapbar .what{font-weight:600;font-size:.9rem;flex:1;min-width:12rem}
 .mapbar .what span{color:var(--muted);font-weight:400}
-.seg{display:flex;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:.2rem}
-.seg button{padding:.3rem .7rem;font-size:.85rem;font-weight:600;color:var(--muted);border-radius:6px}
-.seg button[aria-pressed=true]{background:var(--bg);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
+.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:.15rem}
+.seg button{padding:.3rem .7rem;font-size:.85rem;font-weight:600;color:var(--muted);border-radius:3px}
+.seg button[aria-pressed=true]{background:var(--fg);color:var(--bg)}
 canvas.map{display:block;width:100%;height:34rem;cursor:default}
-.legend{display:flex;flex-wrap:wrap;gap:.25rem .5rem;padding:.45rem .9rem;border-top:1px solid var(--line);background:var(--panel);font-size:.8rem;color:var(--muted)}
-.legend span{display:flex;align-items:center;gap:.3rem;cursor:help;padding:.05rem .3rem;border-radius:4px}
+.legend{display:flex;flex-wrap:wrap;gap:.25rem .5rem;padding:.45rem .9rem;border-top:1px solid var(--line);background:var(--sunk);font-size:.8rem;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:.3rem;cursor:help;padding:.05rem .3rem;border-radius:3px}
 .legend span:hover{background:var(--row-hover);color:var(--fg)}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none;box-shadow:inset 0 0 0 1px var(--dot-edge)}
 .mapnote{position:absolute;left:.9rem;bottom:2.6rem;font-size:.8rem;color:var(--muted);pointer-events:none;max-width:28rem;line-height:1.4}
-.panel{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:1rem 1.1rem 1.2rem}
-.k{color:var(--muted);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin:1.1rem 0 .3rem}
+.panel{border:1px solid var(--line);border-radius:4px;background:var(--panel);padding:1rem 1.1rem 1.2rem;border-top:3px solid var(--fg)}
+.k{color:var(--muted);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;margin:1.1rem 0 .3rem}
 .k:first-child{margin-top:0}
 .gid{font:600 1.05rem/1.3 var(--mono);word-break:break-all}
 .sentence{font-size:.9375rem;line-height:1.55;margin:.3rem 0 0}
 .sentence b{font-variant-numeric:tabular-nums}
-.ev{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:.55rem .7rem;font-size:.85rem;color:var(--muted);line-height:1.45;margin-top:.4rem}
+.ev{background:var(--sunk);border:1px solid var(--line);border-radius:3px;padding:.55rem .7rem;font-size:.85rem;color:var(--muted);line-height:1.45;margin-top:.4rem}
 .ev code{color:var(--fg);font-family:var(--mono);font-size:.8rem}
 .stat{display:flex;justify-content:space-between;gap:.75rem;font-size:.9rem;padding:.2rem 0;color:var(--muted)}
 .stat b{font-variant-numeric:tabular-nums;font-weight:650;color:var(--fg);text-align:right}
 .prio{display:flex;align-items:baseline;gap:.6rem}
-.prio b{font:700 2rem/1 var(--display);color:var(--amber);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.prio b{font:700 2.2rem/1 var(--display);color:var(--amber);font-variant-numeric:tabular-nums}
 .prio span{font-size:.875rem;color:var(--muted)}
-.caveat{border-left:3px solid var(--amber);padding:.4rem .7rem;font-size:.875rem;color:var(--muted);line-height:1.45;margin-top:.6rem;background:var(--sunk);border-radius:0 8px 8px 0}
+.caveat{border-left:3px solid var(--amber);padding:.4rem .7rem;font-size:.875rem;color:var(--muted);line-height:1.45;margin-top:.6rem;background:var(--sunk)}
 .empty{color:var(--muted);font-size:.9rem;line-height:1.5}
-.list{max-height:34rem;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.list{max-height:34rem;overflow:auto;border:1px solid var(--line);border-radius:4px;background:var(--panel)}
 .row{display:grid;grid-template-columns:2.2rem 1fr;gap:.15rem .5rem;padding:.55rem .9rem;border-bottom:1px solid var(--line-soft);cursor:pointer}
 .row:hover{background:var(--row-hover)}
 .row[aria-selected=true]{background:var(--row-hover);box-shadow:inset 3px 0 0 var(--amber)}
@@ -150,13 +164,13 @@ canvas.map{display:block;width:100%;height:34rem;cursor:default}
 
 /* ------------------------------ limits ------------------------------ */
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(12rem,1fr));gap:.6rem;margin-bottom:1.6rem}
-.tile{border:1px solid var(--line);border-radius:9px;padding:.7rem .8rem;background:var(--panel)}
-.tile b{display:block;font:700 1.5rem/1.1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tile{border:1px solid var(--line);border-radius:4px;padding:.7rem .8rem;background:var(--panel)}
+.tile b{display:block;font:700 1.6rem/1.1 var(--display);font-variant-numeric:tabular-nums}
 .tile span{display:block;font-size:.85rem;color:var(--muted);line-height:1.35;margin-top:.2rem}
 .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(26rem,1fr));gap:1.6rem}
-.cols h3{font:650 1.05rem/1.3 var(--display);margin:0 0 .3rem}
+.cols h3{font:700 1.15rem/1.3 var(--display);margin:0 0 .3rem}
 .cols .note{color:var(--muted);font-size:.9rem;line-height:1.5;margin:0 0 .6rem;max-width:60ch}
-.ask{border:1px solid var(--line);border-left:3px solid var(--primary);border-radius:9px;padding:.55rem .75rem;margin-bottom:.5rem;background:var(--panel)}
+.ask{border:1px solid var(--line);border-left:3px solid var(--primary);border-radius:3px;padding:.55rem .75rem;margin-bottom:.5rem;background:var(--panel)}
 .ask .h{font-weight:650;font-size:.9375rem;display:flex;gap:.5rem}
 .ask .h i{font-style:normal;color:var(--primary);font-family:var(--mono)}
 .ask .w{font-size:.875rem;color:var(--muted);line-height:1.45;margin-top:.25rem}
@@ -172,40 +186,84 @@ canvas.map{display:block;width:100%;height:34rem;cursor:default}
   .rail a[aria-current=true]{border-bottom-color:var(--amber)}
   .rail a small,.rail .foot{display:none}
   main{margin-top:0}
-  .explore,.grid2,.grid3{grid-template-columns:1fr}
+  .explore,.grid2{grid-template-columns:1fr}
   section.page{padding:1.4rem 1.2rem 3rem}
-  .find input{width:12rem}
+  .find input{width:11rem}
   .case{display:none}
+}
+
+/* ------------------------------ phone ------------------------------
+ * Under 640px the top bar wraps: mark, language and theme on the first
+ * row, the search input full width on the second. It goes sticky rather
+ * than fixed so its height can vary without the rail needing to know.
+ * Tables scroll sideways inside their section; nothing else is allowed
+ * to widen the page. Everything stays in tokens.
+ * ------------------------------------------------------------------ */
+@media (max-width:640px){
+  html{font-size:15px}
+  main{overflow-x:clip}
+  .top{position:sticky;height:auto;flex-wrap:wrap;gap:.5rem .6rem;padding:.5rem .8rem}
+  .find{display:contents}
+  .find input{order:3;flex:1 1 100%;width:100%;min-width:0;font-size:16px;min-height:36px}
+  .lang{order:1;margin-left:auto}
+  .lang button{min-height:36px;min-width:2.6rem;padding:.4rem .5rem}
+  .theme{order:2;min-height:36px;padding:.4rem .6rem}
+  .rail{margin-top:0;-webkit-overflow-scrolling:touch}
+  .rail a{padding:.6rem .8rem;min-height:36px}
+  .rail a span{font-size:.875rem}
+  section.page{padding:1rem 1rem 3rem;overflow-x:auto;overflow-y:hidden}
+  .ph{gap:.6rem}
+  .ph h2{font-size:1.45rem}
+  .lede{font-size:.9375rem;margin-bottom:1.1rem}
+  table{min-width:36rem;font-size:.875rem}
+  th,td{padding:.5rem .5rem}
+  .ledger{grid-template-columns:1fr 1fr}
+  .ledger div{padding:.8rem .6rem .8rem 0}
+  .ledger div:nth-child(2n){border-right:0;padding-left:.6rem}
+  .ledger b{font-size:1.9rem}
+  .ledger span{font-size:.8rem}
+  .grid2{gap:1rem}
+  .explore{grid-template-columns:minmax(0,1fr)!important;gap:1rem}
+  .panel,.list,.mapwrap{width:100%;min-width:0}
+  .list{max-height:18rem}
+  canvas.map{height:22rem}
+  .mapbar{padding:.5rem .7rem}
+  .mapbar .what{min-width:0;flex:1 1 100%;font-size:.85rem}
+  .seg button{min-height:36px;padding:.4rem .7rem}
+  .chip{min-height:36px;padding:.45rem .6rem}
+  .mapnote{max-width:calc(100% - 1.8rem);bottom:3rem}
+  .tiles{grid-template-columns:1fr 1fr;gap:.5rem}
+  .tile b{font-size:1.35rem}
+  .cols{grid-template-columns:minmax(0,1fr);gap:1.2rem}
+  .cols>*{min-width:0;overflow-x:auto}
+  .prio b{font-size:1.8rem}
+  .module{min-height:12rem}
+  .boot{padding:1.5rem 1rem}
 }
 </style>
 
 <div class="top">
-  <span class="mark"><b>Hack</b><i>Alem</i></span>
-  <div class="case"><b>Money Graph</b>Case file · outbound crawl, 4 hops · 1–31 July 2026</div>
-  <div class="find"><input id="q" list="ids" placeholder="find an account by id" autocomplete="off" spellcheck="false" inputmode="numeric"><datalist id="ids"></datalist></div>
+  <span class="mark">Money<i>Graph</i></span>
+  <div class="case" id="case"></div>
+  <div class="find">
+    <input id="q" list="ids" autocomplete="off" spellcheck="false" inputmode="numeric"><datalist id="ids"></datalist>
+    <div class="lang" id="lang"><button data-l="ru">RU</button><button data-l="kk">KZ</button><button data-l="en">EN</button></div>
+    <button class="theme" id="theme"></button>
+  </div>
 </div>
 
-<nav class="rail" id="rail">
-  <a href="#start"><i>01</i><span>Start</span><small>the case in one screen</small></a>
-  <a href="#review"><i>02</i><span>Who to review first</span><small>ranked, with reasons</small></a>
-  <a href="#account"><i>03</i><span>One account</span><small>its money, its role, its neighbours</small></a>
-  <a href="#structures"><i>04</i><span>Structures</span><small>funnels, chains, loops, fan-outs</small></a>
-  <a href="#replay"><i>05</i><span>Replay the month</span><small>July, day by day</small></a>
-  <a href="#echoes"><i>06</i><span>Amount echoes</span><small>same sum in, same sum out</small></a>
-  <a href="#limits"><i>07</i><span>Where the data runs out</span><small>and what to ask for next</small></a>
-  <div class="foot">Every figure is a measurement from the July extract. Every reading of it is a hypothesis to test, not a finding of guilt.</div>
-</nav>
+<nav class="rail" id="rail"></nav>
 
 <main>
   <section class="page" id="p-start"></section>
   <section class="page" id="p-review"></section>
   <section class="page" id="p-account">
-    <div class="ph"><i>03</i><h2>One account</h2></div>
-    <p class="lede">Pick an account from any list, or type its id above. The map shows the money around it: who paid it on the left, who it paid on the right. Every arrow points the way the money moved.</p>
+    <div class="ph"><i>03</i><h2 data-t="One account"></h2></div>
+    <p class="lede" data-t="Pick an account from any list, or type its id above. The map shows the money around it: who paid it on the left, who it paid on the right. Every arrow points the way the money moved."></p>
     <div class="explore">
       <div class="mapwrap">
         <div class="mapbar"><div class="what" id="what-a"></div>
-          <div class="seg" id="view-a"><button data-v="near" aria-pressed="true">Around this account</button><button data-v="all" aria-pressed="false">Whole network</button></div></div>
+          <div class="seg" id="view-a"><button data-v="near" aria-pressed="true" data-t="Around this account"></button><button data-v="all" aria-pressed="false" data-t="Whole network"></button></div></div>
         <canvas class="map" id="cv-a"></canvas>
         <div class="mapnote" id="note-a"></div>
         <div class="legend" id="legend-a"></div>
@@ -214,8 +272,8 @@ canvas.map{display:block;width:100%;height:34rem;cursor:default}
     </div>
   </section>
   <section class="page" id="p-structures">
-    <div class="ph"><i>04</i><h2>Structures</h2></div>
-    <p class="lede">A ranked account is a name, and an investigator cannot act on a name. These are groups of accounts that only make sense read together, ranked by what an investigator can act on. Each carries its <b>breaking point</b>: the one account whose removal breaks most of it.</p>
+    <div class="ph"><i>04</i><h2 data-t="Structures"></h2></div>
+    <p class="lede" id="lede-f"></p>
     <div class="explore" style="grid-template-columns:22rem minmax(0,1fr) 24rem">
       <div class="list" id="list-f"></div>
       <div class="mapwrap">
@@ -227,31 +285,29 @@ canvas.map{display:block;width:100%;height:34rem;cursor:default}
     </div>
   </section>
   <section class="page" id="p-replay">
-    <div class="ph"><i>05</i><h2>Replay the month</h2></div>
-    <p class="lede">July 2026, one day at a time, on the same hop layout: known clients on the left, four hops to the right. Watch which days carry the bursts and how far the money travels in a day.</p>
+    <div class="ph"><i>05</i><h2 data-t="Replay the month"></h2></div>
+    <p class="lede" data-t="July 2026, one day at a time, on the same hop layout: known clients on the left, four hops to the right. Watch which days carry the bursts and how far the money travels in a day."></p>
     <div class="module" id="mod-replay"></div>
   </section>
   <section class="page" id="p-echoes">
-    <div class="ph"><i>06</i><h2>Amount echoes</h2></div>
-    <p class="lede">An exact sum arrives at an account and leaves again as the same sum, or split into parts, within a day. Or one account sends the identical amount to several receivers on the same day. Each is a hypothesis for an analyst to check against what the transfers were said to be for.</p>
+    <div class="ph"><i>06</i><h2 data-t="Amount echoes"></h2></div>
+    <p class="lede" data-t="An exact sum arrives at an account and leaves again as the same sum, or split into parts, within a day. Or one account sends the identical amount to several receivers on the same day. Each is a hypothesis for an analyst to check against what the transfers were said to be for."></p>
     <div class="module" id="mod-echoes"></div>
   </section>
   <section class="page" id="p-limits"></section>
 </main>
 
 <script type="module">
+import { t, LANG, LOCALE, setLang, ROLE_DEF, KIND_DEF, roleName, kindName } from "./i18n.js";
+
 /* Nothing on this page is fetched from anywhere but the run's own output. */
 let D;
 try {
   D = await (await fetch("../out/graph.json")).json();
 } catch (err) {
-  document.body.innerHTML =
-    `<div class="boot">The run output could not be read. This screen expects <code>out/graph.json</code>
-     beside it, served over HTTP rather than opened from disk. Start it with <code>python3 run.py --serve</code>.</div>`;
+  document.body.innerHTML = `<div class="boot">${t("The run output could not be read. This screen expects out/graph.json beside it, served over HTTP rather than opened from disk. Start it with: python3 run.py --serve")}</div>`;
   throw err;
 }
-/* The two optional sections live in their own modules. If a module is missing the
-   section says so rather than taking the whole screen down with it. */
 const replayMod = await import("./replay.js").catch(() => null);
 const echoesMod = await import("./echoes.js").catch(() => null);
 
@@ -259,37 +315,27 @@ const echoesMod = await import("./echoes.js").catch(() => null);
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const css = k => getComputedStyle(document.documentElement).getPropertyValue("--" + k).trim();
-const fmt = n => Number(n).toLocaleString("en-GB", { maximumFractionDigits: 0 });
+const fmt = n => Number(n).toLocaleString(LOCALE, { maximumFractionDigits: 0 });
 const kzt = n => fmt(n) + " KZT";
 const rgbOf = h => { const v = h.replace("#", ""); return [0, 2, 4].map(i => parseInt(v.slice(i, i + 2), 16) || 0); };
 const soft = (h, a) => { const c = rgbOf(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; };
-const plural = (n, one, many) => `${fmt(n)} ${n === 1 ? one : many}`;
-const AMBER = css("amber");
+const plural = (n, one, many) => `${fmt(n)} ${t(n === 1 ? one : many)}`;
 const roleCol = r => css(r) || css("steel");
-const roleName = r => String(r ?? "").replace(/_/g, " ");
-const pill = r => `<span class="pill" style="background:${soft(roleCol(r), .18)};color:${roleCol(r)}">${esc(roleName(r))}</span>`;
+const pill = r => `<span class="pill" style="background:${soft(roleCol(r), .1)};color:${roleCol(r)}">${esc(roleName(r))}</span>`;
 const short = g => "…" + String(g).slice(-7);
-const dateWord = d => { const x = new Date(d + "T00:00:00"); return isNaN(x) ? d : x.getDate() + " " + x.toLocaleString("en-GB", { month: "long" }); };
+const dateWord = d => { const x = new Date(d + "T00:00:00"); return isNaN(x) ? d : x.toLocaleDateString(LOCALE, { day: "numeric", month: "long" }); };
+const sub = (s, v) => s.replace(/\{(\w+)\}/g, (_, k) => v[k] ?? "");
 
-/* Plain definitions. The thresholds are the ones in src/moneygraph/roles.py. */
-const ROLE_DEF = {
-  consolidator: "Paid by 8 or more different accounts and keeps most of it, passing on less than half.",
-  coordinator: "Receives from 4 or more accounts and pays 4 or more. Money moves through it in both directions.",
-  transit: "Passes on roughly what it receives, between 80% and 120%.",
-  distributor: "Pays out to 20 or more receivers.",
-  terminal: "Money arrives and nothing leaves, and it sits before the crawl's edge, so the money appears to stay.",
-  peripheral: "No rule threshold met: low activity, or a known client with only outbound transfers recorded.",
-  abstained_boundary: "Sits at hop 4 with nothing going out. The crawl stopped here, so no judgement is made.",
-  abstained_single_observation: "Fewer than three transfers in total. Too little to judge.",
-};
-const KIND_DEF = {
-  funnel: "several accounts each send most of their outflow to one collection point",
-  chain: "money forwarded account to account, each passing on most of what arrived",
-  reciprocal_loop: "money sent and sent back, a pair or a short cycle",
-  fan_out: "one account paying many receivers that send nothing on",
-  bridge: "one account that part of a group depends on to reach the rest of the network",
-};
-const kindName = k => String(k ?? "").replace(/_/g, " ");
+/* Static labels marked in the markup. */
+document.documentElement.lang = LANG;
+document.querySelectorAll("[data-t]").forEach(el => el.textContent = t(el.dataset.t));
+$("q").placeholder = t("find an account by id");
+$("case").innerHTML = `<b style="display:block;color:var(--fg);font:600 .9375rem/1.25 var(--display)">${t("Case file")}</b>${t("outbound crawl, 4 hops · 1–31 July 2026")}`;
+document.querySelectorAll("#lang button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.l === LANG); b.onclick = () => setLang(b.dataset.l); });
+const themeBtn = $("theme");
+const paintTheme = () => themeBtn.textContent = document.documentElement.dataset.theme === "dark" ? t("Paper") : t("Dark");
+themeBtn.onclick = () => { const dark = document.documentElement.dataset.theme !== "dark"; document.documentElement.dataset.theme = dark ? "dark" : ""; try { localStorage.setItem("mg.theme", dark ? "dark" : "paper"); } catch {} paintTheme(); location.reload(); };
+paintTheme();
 
 /* Ids are 18 digits and exceed Number.MAX_SAFE_INTEGER, so every key is a String. */
 const byId = new Map(D.nodes.map(n => [String(n.id), n]));
@@ -315,11 +361,15 @@ const abstained = D.nodes.filter(n => n.role.startsWith("abstained")).length;
 const reasonOf = r => String(r.why || "").replace(/^[a-z_]+:\s*/, "");
 $("ids").innerHTML = D.nodes.map(n => `<option value="${n.id}">`).join("");
 
-const api = { selectNode: id => go("account", String(id)), roleColor: roleCol, fmt };
+const api = { selectNode: id => go("account", String(id)), roleColor: roleCol, fmt, lang: LANG, t };
+
+/* ------------------------------ rail ------------------------------ */
+const NAV = [["start", "Start", "the case in one screen"], ["review", "Who to review first", "ranked, with reasons"], ["account", "One account", "its money, its role, its neighbours"],
+  ["structures", "Structures", "funnels, chains, loops, fan-outs"], ["replay", "Replay the month", "July, day by day"], ["echoes", "Amount echoes", "same sum in, same sum out"], ["limits", "Where the data runs out", "and what to ask for next"]];
+$("rail").innerHTML = NAV.map(([p, l, s], i) => `<a href="#${p}"><i>0${i + 1}</i><span>${esc(t(l))}</span><small>${esc(t(s))}</small></a>`).join("")
+  + `<div class="foot">${esc(t("Every figure is a measurement from the July extract. Every reading of it is a hypothesis to test, not a finding of guilt."))}</div>`;
 
 /* ------------------------------ the map, as a factory ------------------------------ */
-/* Two sections draw a map: the account section and the structures section. Each gets its
-   own canvas and its own state; the drawing code is shared. */
 function createMap(canvas, opts) {
   const ctx = canvas.getContext("2d");
   let W = 0, H = 0, hovered = null;
@@ -328,6 +378,7 @@ function createMap(canvas, opts) {
   const M = { focus: null, view: "near", breakId: null, pos, layoutInfo: null };
   const radius = n => n.seed ? 5 : 2.6 + Math.min(4, Math.log10(1 + n.inKzt + n.outKzt) * .65);
   const CAP = 28;
+  const hopLabel = h => h === 0 ? t("known clients") : sub(t("hop {n}"), { n: h });
 
   function spread(ids, x, top, bottom) {
     const gap = (bottom - top) / (ids.length + 1);
@@ -339,10 +390,8 @@ function createMap(canvas, opts) {
     const byKzt = (es, key) => es.slice().sort((a, b) => b.kzt - a.kzt).map(e => e[key]);
     const take = ids => { const u = [...new Set(ids)].filter(x => x !== id); if (u.length > CAP) { hidden += u.length - CAP; return u.slice(0, CAP); } return u; };
     const in1 = take(byKzt(incoming.get(id) || [], "s"));
-    // An account that both paid and was paid by this one is drawn once, on the payer side,
-    // with arrows both ways.
     const both = (outgoing.get(id) || []).filter(e => in1.includes(e.t)).length;
-    const out1 = take(byKzt(outgoing.get(id) || [], "t").filter(t => !in1.includes(t)));
+    const out1 = take(byKzt(outgoing.get(id) || [], "t").filter(x => !in1.includes(x)));
     const seen = new Set([id, ...in1, ...out1]);
     const ring = (ids, map, key) => { const r = []; for (const p of ids) for (const e of byKzt(map.get(p) || [], key)) if (!seen.has(e)) { seen.add(e); r.push(e); } return take(r); };
     const in2 = ring(in1, incoming, "s"), out2 = ring(out1, outgoing, "t");
@@ -387,12 +436,12 @@ function createMap(canvas, opts) {
     if (all) for (let h = 0; h <= maxHop; h++) {
       const x = 88 + (W - 168) * (h / maxHop);
       ctx.strokeStyle = css("grid"); ctx.beginPath(); ctx.moveTo(x, 26); ctx.lineTo(x, H - 24); ctx.stroke();
-      ctx.fillStyle = css("grid-label"); ctx.fillText(h === 0 ? "known clients" : "hop " + h, x, 18);
+      ctx.fillStyle = css("grid-label"); ctx.fillText(hopLabel(h), x, 18);
     } else if (M.focus?.type === "node") {
-      (W < 900 ? ["2 hops in", "paid it", "this one", "paid by it", "2 hops out"]
-               : ["paid the payers", "paid this account", "this account", "were paid by it", "were paid next"]).forEach((t, i) => { ctx.fillStyle = css("grid-label"); ctx.fillText(t, 70 + (W - 140) / 4 * i, 22); });
+      (W < 900 ? ["2 hops in", "paid it", "this one", "paid by it", "2 hops out"] : ["paid the payers", "paid this account", "this account", "were paid by it", "were paid next"])
+        .forEach((s, i) => { ctx.fillStyle = css("grid-label"); ctx.fillText(t(s), 70 + (W - 140) / 4 * i, 22); });
     } else if (M.focus?.type === "form" && M.layoutInfo) {
-      M.layoutInfo.forEach((h, i, arr) => { ctx.fillStyle = css("grid-label"); ctx.fillText(h === 0 ? "known clients" : "hop " + h, arr.length > 1 ? 70 + (W - 140) / (arr.length - 1) * i : W / 2, 22); });
+      M.layoutInfo.forEach((h, i, arr) => { ctx.fillStyle = css("grid-label"); ctx.fillText(hopLabel(h), arr.length > 1 ? 70 + (W - 140) / (arr.length - 1) * i : W / 2, 22); });
     }
     const dim = hl.nodes.size > 0;
     for (const e of drawnEdges) {
@@ -413,8 +462,8 @@ function createMap(canvas, opts) {
     const sel = M.focus?.type === "node" ? pos.get(String(M.focus.n.id)) : null;
     if (sel) { ctx.strokeStyle = css("ring"); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sel.x, sel.y, sel.r + 6, 0, 6.2832); ctx.stroke(); }
     const bp = M.breakId ? pos.get(M.breakId) : null;
-    if (bp) { ctx.strokeStyle = AMBER; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(bp.x, bp.y, bp.r + 8, 0, 6.2832); ctx.stroke();
-      ctx.fillStyle = AMBER; ctx.textAlign = "left"; ctx.font = "600 13px " + css("display"); ctx.fillText("breaking point", bp.x + bp.r + 14, bp.y + 4); }
+    if (bp) { ctx.strokeStyle = css("amber"); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(bp.x, bp.y, bp.r + 8, 0, 6.2832); ctx.stroke();
+      ctx.fillStyle = css("amber"); ctx.textAlign = "left"; ctx.font = "600 13px " + css("body"); ctx.fillText(t("breaking point"), bp.x + bp.r + 14, bp.y + 4); }
     ctx.textAlign = "left"; ctx.font = "12px " + css("mono");
     const small = !all && pos.size <= 40;
     for (const [id, p] of pos) {
@@ -446,15 +495,17 @@ function createMap(canvas, opts) {
 
 const legendHtml = (D.meta.roleOrder || []).filter(r => D.meta.roleCounts[r])
   .map(r => `<span title="${esc(ROLE_DEF[r] || "")}"><i class="dot" style="background:${roleCol(r)}"></i>${esc(roleName(r))} ${fmt(D.meta.roleCounts[r])}</span>`).join("")
-  + `<span title="An account law enforcement already named"><i class="dot" style="background:transparent;box-shadow:0 0 0 1.5px var(--ring)"></i>known client</span>`;
+  + `<span title="${esc(t("An account law enforcement already named"))}"><i class="dot" style="background:transparent;box-shadow:0 0 0 1.5px var(--ring)"></i>${esc(t("known client"))}</span>`;
 $("legend-a").innerHTML = legendHtml; $("legend-f").innerHTML = legendHtml;
 
 /* ------------------------------ 03 one account ------------------------------ */
 const mapA = createMap($("cv-a"), { onLayout: info => {
   const n = mapA.focus?.n;
-  if (info.mode === "all") { $("what-a").innerHTML = `All ${fmt(D.nodes.length)} accounts <span>· left to right is distance from the known clients · the selection and its transfers are lit</span>`; $("note-a").textContent = ""; }
-  else if (n) { $("what-a").innerHTML = `Around ${esc(n.id)} <span>· paid by ${info.in1}, paid ${info.out1 + info.both}${info.both ? ` (${info.both} of them also paid it, drawn once on the left with arrows both ways)` : ""}</span>`;
-    $("note-a").textContent = info.hidden ? `${fmt(info.hidden)} accounts with the smallest transfers are not drawn so the rest stay readable. Whole network shows everything.` : ""; }
+  if (info.mode === "all") { $("what-a").innerHTML = `${sub(t("All {n} accounts"), { n: fmt(D.nodes.length) })} <span>· ${t("left to right is distance from the known clients · the selection and its transfers are lit")}</span>`; $("note-a").textContent = ""; }
+  else if (n) {
+    $("what-a").innerHTML = `${sub(t("Around {id}"), { id: esc(n.id) })} <span>· ${sub(t("paid by {a}, paid {b}"), { a: info.in1, b: info.out1 + info.both })}${info.both ? ` (${sub(t("{n} of them also paid it, drawn once on the left with arrows both ways"), { n: info.both })})` : ""}</span>`;
+    $("note-a").textContent = info.hidden ? sub(t("{n} accounts with the smallest transfers are not drawn so the rest stay readable. Whole network shows everything."), { n: fmt(info.hidden) }) : "";
+  }
 }});
 $("view-a").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if (!b) return; mapA.view = b.dataset.v; document.querySelectorAll("#view-a button").forEach(x => x.setAttribute("aria-pressed", x === b)); mapA.update(); });
 
@@ -462,59 +513,60 @@ function renderAccount(n) {
   const id = String(n.id), k = KNOW.get(id), rk = RANK.get(id);
   const forms = (FORMS_OF.get(id) || []).map(f => FORM_BY_ID.get(f)).filter(Boolean).sort((a, b) => a.rank - b.rank);
   $("panel-a").innerHTML = `
-    <div class="k">This account</div><div class="gid">${esc(id)}</div>${n.seed ? `<div style="margin-top:.3rem">${pill("known client")}</div>` : ""}
-    <p class="sentence">Received <b>${kzt(n.inKzt)}</b> from ${plural(n.inDeg, "account", "accounts")} and sent <b>${kzt(n.outKzt)}</b> to ${plural(n.outDeg, "account", "accounts")} in July.</p>
-    <div class="k">Assessed as</div>
-    <div>${pill(n.role)} <span style="color:var(--muted);font-size:.85rem;margin-left:.3rem">rule confidence ${n.roleScore.toFixed(2)}</span></div>
+    <div class="k">${t("This account")}</div><div class="gid">${esc(id)}</div>${n.seed ? `<div style="margin-top:.3rem"><span class="pill" style="color:var(--amber)">${t("known client")}</span></div>` : ""}
+    <p class="sentence">${sub(t("Received <b>{in}</b> from {a} and sent <b>{out}</b> to {b} in July."), { in: kzt(n.inKzt), a: plural(n.inDeg, "account", "accounts"), out: kzt(n.outKzt), b: plural(n.outDeg, "account", "accounts") })}</p>
+    <div class="k">${t("Assessed as")}</div>
+    <div>${pill(n.role)} <span style="color:var(--muted);font-size:.85rem;margin-left:.3rem">${t("rule confidence")} ${n.roleScore.toFixed(2)}</span></div>
     <p class="sentence">${esc(ROLE_DEF[n.role] || "")}</p>
-    <div class="ev">The rule fired on: <code>${esc(n.evidence)}</code></div>
-    ${atEdge(n) ? `<div class="caveat">This account sits at hop ${maxHop} with nothing recorded going out. The crawl stopped here, so whether the money stopped here is not something this data can say.</div>` : ""}
-    <div class="k">Investigation priority</div>
-    <div class="prio"><b>${(n.priority ?? 0).toFixed(3)}</b><span>${rk ? `#${rk.rank} of ${fmt(D.nodes.length)}` : `not in the top ${TOP.length}`} · 0 to 1, higher first</span></div>
-    <div class="k">Position</div>
-    <div class="stat"><span>hops from a known client</span><b>${n.hop}${n.seed ? " (known)" : ""}</b></div>
-    <div class="stat"><span>group</span><b>${n.cluster}</b></div>
-    ${k ? `<div class="k">What we know of it</div><div class="stat"><span>${esc(String(k.knowledge_state).replace(/_/g, " "))}</span><b>confidence ${(+k.confidence).toFixed(2)}</b></div><p class="empty" style="margin:.2rem 0 0">${esc(k.limitation || "")}</p>` : ""}
-    <div class="k">Structures it belongs to</div>
-    ${forms.length ? forms.slice(0, 8).map(f => `<a class="chip" href="#structures/${esc(f.rank)}">#${esc(f.rank)} ${esc(kindName(f.kind))}</a>`).join("") + (forms.length > 8 ? `<span class="empty"> and ${forms.length - 8} more</span>` : "") : `<p class="empty">None. It is not part of any funnel, chain, loop, fan-out or bridge.</p>`}`;
+    <div class="ev">${t("The rule fired on:")} <code>${esc(n.evidence)}</code></div>
+    ${atEdge(n) ? `<div class="caveat">${sub(t("This account sits at hop {n} with nothing recorded going out. The crawl stopped here, so whether the money stopped here is not something this data can say."), { n: maxHop })}</div>` : ""}
+    <div class="k">${t("Investigation priority")}</div>
+    <div class="prio"><b>${(n.priority ?? 0).toFixed(3)}</b><span>${rk ? `#${rk.rank} ${t("of")} ${fmt(D.nodes.length)}` : sub(t("not in the top {n}"), { n: TOP.length })} · ${t("0 to 1, higher first")}</span></div>
+    <div class="k">${t("Position")}</div>
+    <div class="stat"><span>${t("hops from a known client")}</span><b>${n.hop}${n.seed ? ` (${t("known")})` : ""}</b></div>
+    <div class="stat"><span>${t("group")}</span><b>${n.cluster}</b></div>
+    ${k ? `<div class="k">${t("What we know of it")}</div><div class="stat"><span>${esc(t(String(k.knowledge_state)))}</span><b>${t("confidence")} ${(+k.confidence).toFixed(2)}</b></div><p class="empty" style="margin:.2rem 0 0">${esc(k.limitation || "")}</p>` : ""}
+    <div class="k">${t("Structures it belongs to")}</div>
+    ${forms.length ? forms.slice(0, 8).map(f => `<a class="chip" href="#structures/${esc(f.rank)}">#${esc(f.rank)} ${esc(kindName(f.kind))}</a>`).join("") + (forms.length > 8 ? `<span class="empty"> ${sub(t("and {n} more"), { n: forms.length - 8 })}</span>` : "") : `<p class="empty">${t("None. It is not part of any funnel, chain, loop, fan-out or bridge.")}</p>`}`;
 }
 function showAccount(id) {
   const n = byId.get(String(id).trim());
-  if (!n) { $("panel-a").innerHTML = `<p class="empty">No account with the id ${esc(id)} in this extract.</p>`; mapA.focus = null; mapA.update(); return; }
+  if (!n) { $("panel-a").innerHTML = `<p class="empty">${sub(t("No account with the id {id} in this extract."), { id: esc(id) })}</p>`; mapA.focus = null; mapA.update(); return; }
   $("q").value = n.id; mapA.focus = { type: "node", n }; mapA.breakId = null; renderAccount(n); mapA.update();
 }
 
 /* ------------------------------ 04 structures ------------------------------ */
-const mapF = createMap($("cv-f"), { onLayout: info => { const f = mapF.focus?.f; if (f) $("what-f").innerHTML = `${esc(kindName(f.kind))} #${esc(f.rank)} <span>· ${plural(info.count, "account", "accounts")} across ${plural(info.hops.length, "hop", "hops")} · ${esc(KIND_DEF[f.kind] || "")}</span>`; } });
+$("lede-f").innerHTML = t("A ranked account is a name, and an investigator cannot act on a name. These are groups of accounts that only make sense read together, ranked by what an investigator can act on. Each carries its <b>breaking point</b>: the one account whose removal breaks most of it.");
+const mapF = createMap($("cv-f"), { onLayout: info => { const f = mapF.focus?.f; if (f) $("what-f").innerHTML = `${esc(kindName(f.kind))} #${esc(f.rank)} <span>· ${plural(info.count, "account", "accounts")} ${t("across")} ${plural(info.hops.length, "hop", "hops")} · ${esc(KIND_DEF[f.kind] || "")}</span>`; } });
 function renderFormList() {
   $("list-f").innerHTML = FORMS.slice(0, 80).map((f, i) => `<div class="row" data-frm="${i}" aria-selected="${mapF.focus?.f === f}">
-      <div class="n">${esc(f.rank)}</div><div class="h">${esc(kindName(f.kind))} <span class="pill" style="background:var(--sunk);color:var(--muted)">${plural(f.n_members, "account", "accounts")}</span></div>
-      <div class="w">${plural(f.n_seeds, "known client", "known clients")} · ${kzt(f.kzt_through)} through it</div></div>`).join("")
-    + (FORMS.length > 80 ? `<div class="row"><div class="n"></div><div class="w">${fmt(FORMS.length - 80)} more are in out/formations.csv.</div></div>` : "");
+      <div class="n">${esc(f.rank)}</div><div class="h">${esc(kindName(f.kind))} <span class="pill" style="color:var(--muted)">${plural(f.n_members, "account", "accounts")}</span></div>
+      <div class="w">${plural(f.n_seeds, "known client", "known clients")} · ${kzt(f.kzt_through)} ${t("through it")}</div></div>`).join("")
+    + (FORMS.length > 80 ? `<div class="row"><div class="n"></div><div class="w">${sub(t("{n} more are in out/formations.csv."), { n: fmt(FORMS.length - 80) })}</div></div>` : "");
 }
 function showForm(f) {
   if (!f) return;
   mapF.focus = { type: "form", f }; mapF.breakId = f.breaking_point_gid ? String(f.breaking_point_gid) : null; mapF.update(); renderFormList();
-  const bp = mapF.breakId, unit = { articulation: "accounts cut off", dominator: "accounts cut off", flow: "KZT stopped" }[f.breaking_point_method] || "";
+  const bp = mapF.breakId, unit = { articulation: t("accounts cut off"), dominator: t("accounts cut off"), flow: t("KZT stopped") }[f.breaking_point_method] || "";
   const mem = MEMBERS.get(String(f.formation_id)) || new Set();
   $("panel-f").innerHTML = `
-    <div class="k">This structure</div><div class="gid">${esc(kindName(f.kind))} #${esc(f.rank)} <span style="color:var(--muted);font-weight:400;font-size:.9rem;font-family:var(--body)">of ${FORMS.length}</span></div>
-    <p class="sentence">${esc((KIND_DEF[f.kind] || "").replace(/^./, c => c.toUpperCase()))}. ${plural(f.n_members, "account", "accounts")}, ${f.n_seeds} of them known, <b>${kzt(f.kzt_through)}</b> moving through it.</p>
-    <div class="k">Breaking point</div>
-    ${bp ? `<a class="gid" style="color:var(--amber)" href="#account/${esc(bp)}">${esc(bp)}</a><p class="empty" style="margin:.2rem 0 0">Remove this one account and ${esc(fmt(f.breaking_point_effect))} ${esc(unit)}. Found by ${esc(f.breaking_point_method)}. Marked in amber on the map.</p>` : `<p class="empty">Not identified for this structure.</p>`}
-    ${f.hypothesis ? `<div class="k">Hypothesis to test</div><p class="sentence">${esc(f.hypothesis)}</p>` : ""}
-    ${f.evidence ? `<div class="ev">Arithmetic behind it: <code>${esc(f.evidence)}</code></div>` : ""}
-    <div class="k">Members</div>
-    <div>${[...mem].slice(0, 30).map(g => `<a class="chip" href="#account/${esc(g)}" style="color:${roleCol(byId.get(g)?.role)}">${esc(short(g))}</a>`).join("")}${mem.size > 30 ? `<span class="empty"> and ${mem.size - 30} more</span>` : ""}</div>`;
-  const row = document.querySelector(`.row[data-frm="${FORMS.indexOf(f)}"]`); row?.scrollIntoView({ block: "nearest" });
+    <div class="k">${t("This structure")}</div><div class="gid">${esc(kindName(f.kind))} #${esc(f.rank)} <span style="color:var(--muted);font-weight:400;font-size:.9rem;font-family:var(--body)">${t("of")} ${FORMS.length}</span></div>
+    <p class="sentence">${esc((KIND_DEF[f.kind] || "").replace(/^./, c => c.toUpperCase()))}. ${plural(f.n_members, "account", "accounts")}, ${f.n_seeds} ${t("of them known")}, <b>${kzt(f.kzt_through)}</b> ${t("moving through it")}.</p>
+    <div class="k">${t("Breaking point")}</div>
+    ${bp ? `<a class="gid" style="color:var(--amber)" href="#account/${esc(bp)}">${esc(bp)}</a><p class="empty" style="margin:.2rem 0 0">${sub(t("Remove this one account and {n} {unit}. Found by {method}. Marked in amber on the map."), { n: esc(fmt(f.breaking_point_effect)), unit: esc(unit), method: esc(f.breaking_point_method) })}</p>` : `<p class="empty">${t("Not identified for this structure.")}</p>`}
+    ${f.hypothesis ? `<div class="k">${t("Hypothesis to test")}</div><p class="sentence">${esc(f.hypothesis)}</p>` : ""}
+    ${f.evidence ? `<div class="ev">${t("Arithmetic behind it:")} <code>${esc(f.evidence)}</code></div>` : ""}
+    <div class="k">${t("Members")}</div>
+    <div>${[...mem].slice(0, 30).map(g => `<a class="chip" href="#account/${esc(g)}" style="color:${roleCol(byId.get(g)?.role)}">${esc(short(g))}</a>`).join("")}${mem.size > 30 ? `<span class="empty"> ${sub(t("and {n} more"), { n: mem.size - 30 })}</span>` : ""}</div>`;
+  document.querySelector(`.row[data-frm="${FORMS.indexOf(f)}"]`)?.scrollIntoView({ block: "nearest" });
 }
 $("list-f").addEventListener("click", e => { const r = e.target.closest("[data-frm]"); if (r) location.hash = "#structures/" + FORMS[+r.dataset.frm].rank; });
 
 /* ------------------------------ 02 review list ------------------------------ */
 $("p-review").innerHTML = `
-  <div class="ph"><i>02</i><h2>Who to review first</h2></div>
-  <p class="lede">The ${TOP.length} accounts the evidence puts first, out of ${fmt(D.nodes.length)}. Ranked on the rules that fired and the numbers they fired on, not on how central an account is. <b>Click a row</b> to open the account.</p>
-  <table><thead><tr><th class="right">#</th><th>account</th><th>assessed as</th><th>priority</th><th>the reason, in the rule's own numbers</th></tr></thead><tbody>
+  <div class="ph"><i>02</i><h2>${t("Who to review first")}</h2></div>
+  <p class="lede">${sub(t("The {k} accounts the evidence puts first, out of {n}. Ranked on the rules that fired and the numbers they fired on, not on how central an account is. <b>Click a row</b> to open the account."), { k: TOP.length, n: fmt(D.nodes.length) })}</p>
+  <table><thead><tr><th class="right">#</th><th>${t("account")}</th><th>${t("assessed as")}</th><th>${t("priority")}</th><th>${t("the reason, in the rule's own numbers")}</th></tr></thead><tbody>
   ${TOP.map(r => `<tr data-gid="${esc(r.gid)}"><td class="right rank">${esc(r.rank)}</td><td class="mono">${esc(r.gid)}</td><td>${pill(r.role)}</td>
     <td class="num"><i class="bar" style="width:${Math.round(+r.priority_score * 120)}px"></i>${(+r.priority_score).toFixed(3)}</td><td class="wrap">${esc(reasonOf(r))}</td></tr>`).join("")}
   </tbody></table>`;
@@ -523,68 +575,67 @@ $("p-review").innerHTML = `
 {
   const cs = D.completeness_summary || {}, g = D.integrity || {}, pct = v => (v * 100).toFixed(0) + "%";
   const tiles = [
-    [fmt(g.dead_ends_truncated_depth4 ?? 0), `accounts at hop ${maxHop} with nothing going out. The crawl stopped, not the money.`],
-    [fmt(g.dead_ends_genuine ?? 0), "dead ends the crawl did follow to their end"],
-    [fmt(g.seeds_absent_from_edges ?? 0), `of the ${fmt(g.seeds ?? D.meta.seeds)} known clients appear in no transfer at all`],
-    [fmt(g.seeds_without_outgoing ?? 0), "known clients sent nothing in the window"],
-    cs.state_node_share_truncated_at_depth != null ? [pct(cs.state_node_share_truncated_at_depth), "of accounts sit at the crawl boundary"] : null,
-    cs.state_turnover_share_truncated_at_depth != null ? [pct(cs.state_turnover_share_truncated_at_depth), "of turnover ends at the crawl boundary"] : null,
-    cs.state_count_isolated != null ? [fmt(cs.state_count_isolated), "isolated accounts, no transfer either way"] : null,
+    [fmt(g.dead_ends_truncated_depth4 ?? 0), sub(t("accounts at hop {n} with nothing going out. The crawl stopped, not the money."), { n: maxHop })],
+    [fmt(g.dead_ends_genuine ?? 0), t("dead ends the crawl did follow to their end")],
+    [fmt(g.seeds_absent_from_edges ?? 0), sub(t("of the {n} known clients appear in no transfer at all"), { n: fmt(g.seeds ?? D.meta.seeds) })],
+    [fmt(g.seeds_without_outgoing ?? 0), t("known clients sent nothing in the window")],
+    cs.state_node_share_truncated_at_depth != null ? [pct(cs.state_node_share_truncated_at_depth), t("of accounts sit at the crawl boundary")] : null,
+    cs.state_turnover_share_truncated_at_depth != null ? [pct(cs.state_turnover_share_truncated_at_depth), t("of turnover ends at the crawl boundary")] : null,
+    cs.state_count_isolated != null ? [fmt(cs.state_count_isolated), t("isolated accounts, no transfer either way")] : null,
   ].filter(Boolean);
   const nd = (D.next_data_request || []).slice().sort((a, b) => a.rank - b.rank), dem = D.demoted || [], res = D.resilience || [];
   $("p-limits").innerHTML = `
-    <div class="ph"><i>07</i><h2>Where the data runs out</h2></div>
-    <p class="lede">The crawl followed money <b>outwards</b> from the ${fmt(D.meta.seeds)} known clients for four hops. Money arriving into them was never followed, so anyone directing them from above is outside this extract by construction. These are the measured limits, and what to ask for next.</p>
+    <div class="ph"><i>07</i><h2>${t("Where the data runs out")}</h2></div>
+    <p class="lede">${sub(t("The crawl followed money <b>outwards</b> from the {n} known clients for four hops. Money arriving into them was never followed, so anyone directing them from above is outside this extract by construction. These are the measured limits, and what to ask for next."), { n: fmt(D.meta.seeds) })}</p>
     <div class="tiles">${tiles.map(([v, l]) => `<div class="tile"><b>${v}</b><span>${esc(l)}</span></div>`).join("")}</div>
     <div class="cols">
-      <div><h3>What to ask the data owner for next</h3><p class="note">Ranked by what each request would resolve.</p>
-        ${nd.length ? nd.map(r => `<div class="ask"><div class="h"><i>${esc(r.rank)}</i>${esc(r.request)}</div><div class="w">${esc(r.why)}</div><div class="f"><b>${fmt(r.resolves_nodes)}</b> accounts resolved · <b>${kzt(r.illuminates_kzt)}</b> lit up</div></div>`).join("") : `<p class="empty">Not generated in this run.</p>`}
+      <div><h3>${t("What to ask the data owner for next")}</h3><p class="note">${t("Ranked by what each request would resolve.")}</p>
+        ${nd.length ? nd.map(r => `<div class="ask"><div class="h"><i>${esc(r.rank)}</i>${esc(r.request)}</div><div class="w">${esc(r.why)}</div><div class="f"><b>${fmt(r.resolves_nodes)}</b> ${t("accounts resolved")} · <b>${kzt(r.illuminates_kzt)}</b> ${t("lit up")}</div></div>`).join("") : `<p class="empty">${t("Not generated in this run.")}</p>`}
       </div>
-      <div><h3>Where a plain centrality ranking would mislead</h3><p class="note">Centrality promotes accounts that flow passes through. It cannot tell an account collecting from many payers apart from a business paying many suppliers. These accounts moved most between the two rankings.</p>
-        ${dem.length ? `<table><thead><tr><th>account</th><th class="right">by centrality</th><th class="right">by evidence</th><th>assessed as</th><th>the numbers</th></tr></thead><tbody>${dem.map(r => `<tr data-gid="${esc(r.gid)}"><td class="mono">${esc(short(r.gid))}</td><td class="right num">#${esc(r.rank_pagerank)}</td><td class="right num">#${esc(r.rank_priority)}</td><td>${pill(r.role)}</td><td class="wrap">${esc(r.evidence)}</td></tr>`).join("")}</tbody></table>` : `<p class="empty">Not generated in this run.</p>`}
-        <h3 style="margin-top:1.4rem">If the top-ranked accounts were removed</h3><p class="note">A ranking is only worth having if acting on it changes the network.</p>
-        ${res.length ? `<table><thead><tr><th class="right">removed</th><th class="right">largest group left</th><th class="right">separate pieces</th><th class="right">still reachable from known clients</th></tr></thead><tbody>${res.map(r => `<tr><td class="right num">${fmt(r.removed)}</td><td class="right num">${fmt(r.largest_component)}</td><td class="right num">${fmt(r.n_components)}</td><td class="right num">${fmt(r.nodes_reachable_from_seeds)}</td></tr>`).join("")}</tbody></table>` : `<p class="empty">Not generated in this run.</p>`}
+      <div><h3>${t("Where a plain centrality ranking would mislead")}</h3><p class="note">${t("Centrality promotes accounts that flow passes through. It cannot tell an account collecting from many payers apart from a business paying many suppliers. These accounts moved most between the two rankings.")}</p>
+        ${dem.length ? `<table><thead><tr><th>${t("account")}</th><th class="right">${t("by centrality")}</th><th class="right">${t("by evidence")}</th><th>${t("assessed as")}</th><th>${t("the numbers")}</th></tr></thead><tbody>${dem.map(r => `<tr data-gid="${esc(r.gid)}"><td class="mono">${esc(short(r.gid))}</td><td class="right num">#${esc(r.rank_pagerank)}</td><td class="right num">#${esc(r.rank_priority)}</td><td>${pill(r.role)}</td><td class="wrap">${esc(r.evidence)}</td></tr>`).join("")}</tbody></table>` : `<p class="empty">${t("Not generated in this run.")}</p>`}
+        <h3 style="margin-top:1.4rem">${t("If the top-ranked accounts were removed")}</h3><p class="note">${t("A ranking is only worth having if acting on it changes the network.")}</p>
+        ${res.length ? `<table><thead><tr><th class="right">${t("removed")}</th><th class="right">${t("largest group left")}</th><th class="right">${t("separate pieces")}</th><th class="right">${t("still reachable from known clients")}</th></tr></thead><tbody>${res.map(r => `<tr><td class="right num">${fmt(r.removed)}</td><td class="right num">${fmt(r.largest_component)}</td><td class="right num">${fmt(r.n_components)}</td><td class="right num">${fmt(r.nodes_reachable_from_seeds)}</td></tr>`).join("")}</tbody></table>` : `<p class="empty">${t("Not generated in this run.")}</p>`}
       </div>
     </div>`;
 }
 
 /* ------------------------------ 05, 06 modules ------------------------------ */
 let replayFacts = null, echoFacts = null;
-if (replayMod?.mountReplay) { try { replayMod.mountReplay($("mod-replay"), D, api); replayFacts = replayMod.replayFacts?.(D) ?? null; } catch (e) { console.error(e); $("mod-replay").innerHTML = `<p class="empty">The replay could not start: ${esc(e.message)}</p>`; } }
-else $("mod-replay").innerHTML = `<p class="empty">The replay module (web/replay.js) is not present in this build.</p>`;
-if (echoesMod?.mountEchoes) { try { echoesMod.mountEchoes($("mod-echoes"), D, api); echoFacts = echoesMod.echoFacts?.(D) ?? null; } catch (e) { console.error(e); $("mod-echoes").innerHTML = `<p class="empty">The echoes section could not start: ${esc(e.message)}</p>`; } }
-else $("mod-echoes").innerHTML = `<p class="empty">The echoes module (web/echoes.js) is not present in this build.</p>`;
+if (replayMod?.mountReplay) { try { replayMod.mountReplay($("mod-replay"), D, api); replayFacts = replayMod.replayFacts?.(D) ?? null; } catch (e) { console.error(e); $("mod-replay").innerHTML = `<p class="empty">${t("This section could not start:")} ${esc(e.message)}</p>`; } }
+else $("mod-replay").innerHTML = `<p class="empty">${t("This section's module is not present in this build.")}</p>`;
+if (echoesMod?.mountEchoes) { try { echoesMod.mountEchoes($("mod-echoes"), D, api); echoFacts = echoesMod.echoFacts?.(D) ?? null; } catch (e) { console.error(e); $("mod-echoes").innerHTML = `<p class="empty">${t("This section could not start:")} ${esc(e.message)}</p>`; } }
+else $("mod-echoes").innerHTML = `<p class="empty">${t("This section's module is not present in this build.")}</p>`;
 
 /* ------------------------------ 01 start ------------------------------ */
 {
-  const g = D.integrity || {};
-  const lead = TOP.slice(0, 3), forms = FORMS.slice(0, 3);
+  const g = D.integrity || {}, lead = TOP.slice(0, 3), forms = FORMS.slice(0, 3);
   $("p-start").innerHTML = `
-    <div class="ph"><i>01</i><h2>The case in one screen</h2></div>
-    <p class="lede">Law enforcement named <b>${D.meta.seeds} accounts</b> at the bottom of a chain. A crawl followed their outbound transfers for four hops through July 2026. This tool reads what the crawl brought back and answers one question: <b>which of these accounts should an analyst look at first, and why.</b></p>
+    <div class="ph"><i>01</i><h2>${t("The case in one screen")}</h2></div>
+    <p class="lede">${sub(t("Law enforcement named <b>{n} accounts</b> at the bottom of a chain. A crawl followed their outbound transfers for four hops through July 2026. This tool reads what the crawl brought back and answers one question: <b>which of these accounts should an analyst look at first, and why.</b>"), { n: D.meta.seeds })}</p>
     <div class="ledger">
-      <div><b>${fmt(D.meta.seeds)}</b><span>known clients, where the crawl began</span></div>
-      <div><b>${fmt(D.meta.nodes)}</b><span>accounts reached in four hops</span></div>
-      <div><b>${fmt(D.meta.edges)}</b><span>transfer relationships, ${kzt(D.meta.turnover)}</span></div>
-      <div class="amber"><b>${fmt(TOP.length)}</b><span>accounts to review first</span></div>
-      <div><b>${fmt(FORMS.length)}</b><span>structures that only make sense read together</span></div>
-      <div><b>${fmt(abstained)}</b><span>accounts not judged, because the data does not support a judgement</span></div>
+      <div><b>${fmt(D.meta.seeds)}</b><span>${t("known clients, where the crawl began")}</span></div>
+      <div><b>${fmt(D.meta.nodes)}</b><span>${t("accounts reached in four hops")}</span></div>
+      <div><b>${fmt(D.meta.edges)}</b><span>${t("transfer relationships")}, ${kzt(D.meta.turnover)}</span></div>
+      <div class="amber"><b>${fmt(TOP.length)}</b><span>${t("accounts to review first")}</span></div>
+      <div><b>${fmt(FORMS.length)}</b><span>${t("structures that only make sense read together")}</span></div>
+      <div><b>${fmt(abstained)}</b><span>${t("accounts not judged, because the data does not support a judgement")}</span></div>
     </div>
     <div class="grid2">
       <div>
-        <h3 class="sec">Start with these accounts</h3>
-        ${lead.map(r => `<a class="lead" href="#account/${esc(r.gid)}" style="margin-bottom:.6rem"><div class="r">RANK ${esc(r.rank)} · PRIORITY ${(+r.priority_score).toFixed(3)}</div><div class="g">${esc(r.gid)}</div><div class="t">${pill(r.role)}</div><div class="w">${esc(reasonOf(r))}</div></a>`).join("")}
-        <a class="go" href="#review">All ${TOP.length} ranked accounts</a>
+        <h3 class="sec">${t("Start with these accounts")}</h3>
+        ${lead.map(r => `<a class="lead" href="#account/${esc(r.gid)}" style="margin-bottom:.6rem"><div class="r">${t("RANK")} ${esc(r.rank)} · ${t("PRIORITY")} ${(+r.priority_score).toFixed(3)}</div><div class="g">${esc(r.gid)}</div><div class="t">${pill(r.role)}</div><div class="w">${esc(reasonOf(r))}</div></a>`).join("")}
+        <a class="go" href="#review">${sub(t("All {n} ranked accounts"), { n: TOP.length })}</a>
       </div>
       <div>
-        <h3 class="sec">Start with these structures</h3>
-        ${forms.map(f => `<a class="lead" href="#structures/${esc(f.rank)}" style="margin-bottom:.6rem"><div class="r">RANK ${esc(f.rank)} · ${esc(kindName(f.kind).toUpperCase())}</div><div class="g">${plural(f.n_members, "account", "accounts")} · ${kzt(f.kzt_through)}</div><div class="w">${esc(f.hypothesis || KIND_DEF[f.kind] || "")}</div></a>`).join("")}
-        <a class="go" href="#structures">All ${FORMS.length} structures</a>
+        <h3 class="sec">${t("Start with these structures")}</h3>
+        ${forms.map(f => `<a class="lead" href="#structures/${esc(f.rank)}" style="margin-bottom:.6rem"><div class="r">${t("RANK")} ${esc(f.rank)} · ${esc(kindName(f.kind).toUpperCase())}</div><div class="g">${plural(f.n_members, "account", "accounts")} · ${kzt(f.kzt_through)}</div><div class="w">${esc(f.hypothesis || KIND_DEF[f.kind] || "")}</div></a>`).join("")}
+        <a class="go" href="#structures">${sub(t("All {n} structures"), { n: FORMS.length })}</a>
         <hr class="rule">
-        <h3 class="sec">Also in this file</h3>
-        ${replayFacts?.busiestDay ? `<div class="fact"><b>${esc(dateWord(replayFacts.busiestDay.date))}</b><span>the busiest day: ${kzt(replayFacts.busiestDay.kzt)} in ${plural(replayFacts.busiestDay.n_tx, "transfer", "transfers")}. <a class="go" href="#replay">Replay the month</a></span></div>` : ""}
-        ${echoFacts ? `<div class="fact"><b>${fmt(echoFacts.total)}</b><span>amount echoes: the same sum in and out within a day, or the same sum to several receivers. <a class="go" href="#echoes">See them</a></span></div>` : ""}
-        <div class="fact"><b>${fmt(g.dead_ends_truncated_depth4 ?? 0)}</b><span>accounts where the crawl stopped rather than the money. <a class="go" href="#limits">Where the data runs out</a></span></div>
+        <h3 class="sec">${t("Also in this file")}</h3>
+        ${replayFacts?.busiestDay ? `<div class="fact"><b>${esc(dateWord(replayFacts.busiestDay.date))}</b><span>${sub(t("the busiest day: {kzt} in {n} transfers."), { kzt: kzt(replayFacts.busiestDay.kzt), n: fmt(replayFacts.busiestDay.n_tx) })} <a class="go" href="#replay">${t("Replay the month")}</a></span></div>` : ""}
+        ${echoFacts ? `<div class="fact"><b>${fmt(echoFacts.total)}</b><span>${t("amount echoes: the same sum in and out within a day, or the same sum to several receivers.")} <a class="go" href="#echoes">${t("See them")}</a></span></div>` : ""}
+        <div class="fact"><b>${fmt(g.dead_ends_truncated_depth4 ?? 0)}</b><span>${t("accounts where the crawl stopped rather than the money.")} <a class="go" href="#limits">${t("Where the data runs out")}</a></span></div>
       </div>
     </div>`;
 }

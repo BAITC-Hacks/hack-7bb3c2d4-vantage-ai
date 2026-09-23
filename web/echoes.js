@@ -5,17 +5,141 @@
 // account and leaving again (relay), leaving split into parts (split), or one account
 // sending the identical amount to several receivers on one day (fan_split).
 
-const KIND_PHRASE = {
-  relay: "Same amount in and out",
-  split: "One amount in, split on the way out",
-  fan_split: "Same amount to N receivers",
+// ---------- i18n ----------
+// api.lang is "en" | "ru" | "kk" (default "en"). Every user-facing string lives here;
+// the `evidence` field that arrives in the payload is pipeline English and is shown as is.
+const T = {
+  en: {
+    locale: "en-GB",
+    // count nouns: [one, other]; pluralForm() picks the form
+    count_relay: ["relay", "relays"],
+    count_split: ["split", "splits"],
+    count_fan_split: ["same-amount fan-out", "same-amount fan-outs"],
+    // filter chips
+    chip_relay: "relays",
+    chip_split: "splits",
+    chip_fan_split: "same-amount fan-outs",
+    sort: "sort",
+    sort_score: "score",
+    sort_amount: "amount",
+    sort_date: "date",
+    kind_relay: "Same amount in and out",
+    kind_split: "One amount in, split on the way out",
+    kind_fan_split: "Same amount to {n} receivers",
+    badge_exact: "exact",
+    badge_within: "within 2%",
+    same_day: "same day",
+    next_day: "next day",
+    date_unknown: "date unknown",
+    in: "in",
+    out: "out",
+    score: "score",
+    open_account: "Open account",
+    empty: "No exact-amount echoes were found within the 2% tolerance: nothing in this window arrived and left again as the same amount, or went out identically to several receivers, <b>which is itself a finding</b>.",
+    empty_filtered: "No echoes of the selected kinds. Turn a kind back on to see them.",
+    mock: "mock data",
+    mock_title: "D.echoes is missing from the run payload; showing placeholder echoes built from edges",
+    diagram_label: "Amount echo diagram",
+    role_unknown: "role unknown",
+    side_in: "in",
+    side_out: "out",
+    one_day: "one day",
+    ev_fan_split: "{out} KZT went out to {n} receivers in matching amounts on {date}; consistent with a single instruction, worth checking.",
+    ev_split: "{in} KZT arrived and {out} KZT left as {n} parts within {d} day(s); worth checking whether the parts were pre-arranged.",
+    ev_relay: "{in} KZT arrived and {out} KZT left again within {d} day(s); consistent with a pass-through, worth checking.",
+  },
+  ru: {
+    locale: "ru-RU",
+    // count nouns: [1, 2–4, 5+]
+    count_relay: ["транзит", "транзита", "транзитов"],
+    count_split: ["дробление", "дробления", "дроблений"],
+    count_fan_split: ["веерный платёж", "веерных платежа", "веерных платежей"],
+    chip_relay: "транзиты",
+    chip_split: "дробления",
+    chip_fan_split: "веерные платежи",
+    sort: "сортировка",
+    sort_score: "оценка",
+    sort_amount: "сумма",
+    sort_date: "дата",
+    kind_relay: "Та же сумма вошла и вышла",
+    kind_split: "Одна сумма вошла, вышла частями",
+    kind_fan_split: "Одна и та же сумма {n} получателям",
+    badge_exact: "точно",
+    badge_within: "в пределах 2%",
+    same_day: "в тот же день",
+    next_day: "на следующий день",
+    date_unknown: "дата неизвестна",
+    in: "вход",
+    out: "выход",
+    score: "оценка",
+    open_account: "Открыть счёт",
+    empty: "Точных повторов суммы в пределах допуска 2% не найдено: в этом окне ни одна сумма не пришла и не ушла в том же размере и не разошлась одинаковыми частями нескольким получателям, <b>что само по себе является наблюдением</b>.",
+    empty_filtered: "Нет повторов выбранных типов. Включите тип снова, чтобы их увидеть.",
+    mock: "тестовые данные",
+    mock_title: "В данных прогона нет D.echoes; показаны заглушки, построенные по рёбрам графа",
+    diagram_label: "Схема повтора суммы",
+    role_unknown: "роль неизвестна",
+    side_in: "вход",
+    side_out: "выход",
+    one_day: "в один день",
+    ev_fan_split: "{out} KZT ушли {n} получателям одинаковыми суммами {date}; похоже на единое поручение, стоит проверить.",
+    ev_split: "{in} KZT поступили и {out} KZT ушли {n} частями в течение {d} дн.; стоит проверить, было ли дробление согласовано заранее.",
+    ev_relay: "{in} KZT поступили и {out} KZT ушли в течение {d} дн.; похоже на транзит, стоит проверить.",
+  },
+  kk: {
+    locale: "kk-KZ",
+    // Kazakh nouns stay singular after a numeral: one form
+    count_relay: ["транзит"],
+    count_split: ["бөлшектеу"],
+    count_fan_split: ["бірдей сомамен тарату"],
+    chip_relay: "транзиттер",
+    chip_split: "бөлшектеулер",
+    chip_fan_split: "бірдей сомамен таратулар",
+    sort: "сұрыптау",
+    sort_score: "балл",
+    sort_amount: "сома",
+    sort_date: "күні",
+    kind_relay: "Сол сома кірді және шықты",
+    kind_split: "Бір сома кірді, бөліктерге бөлініп шықты",
+    kind_fan_split: "Бірдей сома {n} алушыға",
+    badge_exact: "дәл",
+    badge_within: "2% шегінде",
+    same_day: "сол күні",
+    next_day: "келесі күні",
+    date_unknown: "күні белгісіз",
+    in: "кіріс",
+    out: "шығыс",
+    score: "балл",
+    open_account: "Шотты ашу",
+    empty: "2% шегінде дәл қайталанған сома табылмады: бұл кезеңде бірде-бір сома сол мөлшерде кіріп қайта шықпаған және бірнеше алушыға бірдей мөлшерде жіберілмеген, <b>бұл өзі де маңызды қорытынды</b>.",
+    empty_filtered: "Таңдалған түрлердегі қайталанулар жоқ. Көру үшін түрін қайта қосыңыз.",
+    mock: "тестілік деректер",
+    mock_title: "Іске қосу деректерінде D.echoes жоқ; графтың қырлары бойынша құрылған уақытша үлгілер көрсетілген",
+    diagram_label: "Сома қайталануының сызбасы",
+    role_unknown: "рөлі белгісіз",
+    side_in: "кіріс",
+    side_out: "шығыс",
+    one_day: "бір күнде",
+    ev_fan_split: "{out} KZT {date} {n} алушыға бірдей сомалармен жіберілген; бір нұсқауға ұқсайды, тексерген жөн.",
+    ev_split: "{in} KZT кірді және {out} KZT {n} бөлікпен {d} күн ішінде шықты; бөліктердің алдын ала келісілгенін тексерген жөн.",
+    ev_relay: "{in} KZT кірді және {out} KZT {d} күн ішінде қайта шықты; транзитке ұқсайды, тексерген жөн.",
+  },
 };
-const KIND_NOUN = {
-  relay: ["relay", "relays"],
-  split: ["split", "splits"],
-  fan_split: ["same-amount fan-out", "same-amount fan-outs"],
-};
-const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const t = (k, lang) => (T[lang] || T.en)[k] ?? T.en[k] ?? k;
+// "{name}" placeholders → values
+const fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, k) => (vars[k] ?? `{${k}}`));
+// Pick the noun form for n. en: [one, other]; ru: [1, 2–4, 5+] (11–14 → 5+); kk: single form.
+function pluralForm(lang, n, forms) {
+  n = Math.abs(Math.round(n));
+  if (lang === "ru" && forms.length >= 3) {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return forms[0];
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return forms[1];
+    return forms[2];
+  }
+  if (lang === "kk") return forms[0];
+  return n === 1 ? forms[0] : forms[forms.length - 1];
+}
 
 const CSS = `
 .echoes{font-family:var(--body);color:var(--fg);font-variant-numeric:tabular-nums;width:100%}
@@ -79,17 +203,24 @@ function parseDate(s) {
   if (!m) return null;
   return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
 }
-function dayMonth(d) { return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`; }
-function whenText(e) {
-  const d0 = parseDate(e.date);
-  if (!d0) return e.date ? String(e.date) : "date unknown";
-  const lag = Math.max(0, Math.round(num(e.lag_days, 0)));
-  if (lag === 0) return `${dayMonth(d0)}, same day`;
-  const d1 = new Date(d0.getTime() + lag * 86400000);
-  if (d1.getUTCMonth() === d0.getUTCMonth()) return `${d0.getUTCDate()}–${d1.getUTCDate()} ${MONTHS[d0.getUTCMonth()]}`;
-  return `${dayMonth(d0)} – ${dayMonth(d1)}`;
+// "5 July" / "5 июля" / "5 шілде". Dates are UTC-constructed, so format in UTC too.
+function dayMonth(d, locale) {
+  try { return d.toLocaleDateString(locale, { day: "numeric", month: "long", timeZone: "UTC" }); }
+  catch (_) { return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "UTC" }); }
 }
-function plural(kind, n) { const p = KIND_NOUN[kind] || [kind, kind + "s"]; return `${n} ${n === 1 ? p[0] : p[1]}`; }
+function whenText(e, tr, locale) {
+  const d0 = parseDate(e.date);
+  if (!d0) return e.date ? String(e.date) : tr("date_unknown");
+  const lag = Math.max(0, Math.round(num(e.lag_days, 0)));
+  if (lag === 0) return `${dayMonth(d0, locale)}, ${tr("same_day")}`;
+  if (lag === 1) return `${dayMonth(d0, locale)}, ${tr("next_day")}`;
+  const d1 = new Date(d0.getTime() + lag * 86400000);
+  // same month: "5–8 July" — the day of d0 in front of the formatted d1
+  if (d1.getUTCMonth() === d0.getUTCMonth()) return `${d0.getUTCDate()}–${dayMonth(d1, locale)}`;
+  return `${dayMonth(d0, locale)} – ${dayMonth(d1, locale)}`;
+}
+// "135 relays" / "135 транзитов" / "135 транзит"
+function countLabel(kind, n, tr, lang) { return `${n} ${pluralForm(lang, n, tr("count_" + kind))}`; }
 
 // Normalise one raw echo record into a predictable shape.
 function normalise(raw, i) {
@@ -203,7 +334,7 @@ export function echoFacts(D) {
 }
 
 // ---------- SVG diagram ----------
-function diagram(e, D, api, nodeRole) {
+function diagram(e, D, api, nodeRole, tr) {
   const W = 340, ROW = 26, PAD = 18;
   const rows = Math.max(1, e.ins.length, e.outs.length);
   const H = Math.max(96, rows * ROW + PAD * 2 + 6);
@@ -232,13 +363,13 @@ function diagram(e, D, api, nodeRole) {
     parts.push(label(fx, fy - 6, fmt(t.kzt), "end"));
   });
   // side dots
-  e.ins.forEach((s, i) => parts.push(dot(xL, yIn(i), 5, safeColour(api, nodeRole(s.id)), s.id, "in")));
-  e.outs.forEach((t, i) => parts.push(dot(xR, yOut(i), 5, safeColour(api, nodeRole(t.id)), t.id, "out")));
+  e.ins.forEach((s, i) => parts.push(dot(xL, yIn(i), 5, safeColour(api, nodeRole(s.id)), s.id, tr("side_in"))));
+  e.outs.forEach((o, i) => parts.push(dot(xR, yOut(i), 5, safeColour(api, nodeRole(o.id)), o.id, tr("side_out"))));
   // centre
-  parts.push(`<g class="ech-dot" data-gid="${esc(e.gid)}" tabindex="0" role="button"><title>${esc(e.gid)} — ${esc(role || "role unknown")}</title>` +
+  parts.push(`<g class="ech-dot" data-gid="${esc(e.gid)}" tabindex="0" role="button"><title>${esc(e.gid)} — ${esc(role || tr("role_unknown"))}</title>` +
     `<circle cx="${xC}" cy="${cy}" r="9" fill="${colour}" stroke="var(--bg)" stroke-width="2"/>` +
     `<text x="${xC}" y="${cy + 22}" text-anchor="middle" font-family="var(--mono)" font-size="11" fill="var(--fg)">…${esc(tail(e.gid))}</text></g>`);
-  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" aria-label="Amount echo diagram">${parts.join("")}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" aria-label="${esc(tr("diagram_label"))}">${parts.join("")}</svg>`;
 }
 function label(x, y, text, anchor = "middle") {
   return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="var(--mono)" font-size="10" fill="var(--muted)">${esc(text)}</text>`;
@@ -256,6 +387,9 @@ function safeColour(api, role) {
 export function mountEchoes(container, D, api) {
   injectStyle();
   api = Object.assign({ selectNode: () => {}, roleColor: () => "", fmt: n => fmtPlain(n) }, api || {});
+  const lang = T[api.lang] ? api.lang : "en";
+  const tr = k => t(k, lang);
+  const locale = tr("locale");
   container.classList.add("echoes");
   container.innerHTML = "";
 
@@ -275,8 +409,8 @@ export function mountEchoes(container, D, api) {
   head.className = "ech-head";
   const countsEl = document.createElement("div");
   countsEl.className = "ech-counts";
-  countsEl.innerHTML = `${plural("relay", counts.relay)} · ${plural("split", counts.split)} · ${plural("fan_split", counts.fan_split)}` +
-    (mock ? `<span class="ech-mock" title="D.echoes is missing from the run payload; showing placeholder echoes built from edges">mock data</span>` : "");
+  countsEl.innerHTML = `${esc(countLabel("relay", counts.relay, tr, lang))} · ${esc(countLabel("split", counts.split, tr, lang))} · ${esc(countLabel("fan_split", counts.fan_split, tr, lang))}` +
+    (mock ? `<span class="ech-mock" title="${esc(tr("mock_title"))}">${esc(tr("mock"))}</span>` : "");
   head.appendChild(countsEl);
 
   const tools = document.createElement("div");
@@ -285,13 +419,13 @@ export function mountEchoes(container, D, api) {
   for (const kind of ["relay", "split", "fan_split"]) {
     const b = document.createElement("button");
     b.type = "button"; b.className = "ech-chip"; b.setAttribute("aria-pressed", "true");
-    b.innerHTML = `${esc(KIND_NOUN[kind][1])}<span class="ech-n">${counts[kind]}</span>`;
+    b.innerHTML = `${esc(tr("chip_" + kind))}<span class="ech-n">${counts[kind]}</span>`;
     b.addEventListener("click", () => { state.on[kind] = !state.on[kind]; b.setAttribute("aria-pressed", String(state.on[kind])); renderList(); });
     chips[kind] = b; tools.appendChild(b);
   }
   const sortWrap = document.createElement("label");
   sortWrap.className = "ech-sort";
-  sortWrap.innerHTML = `<span>sort</span><select><option value="score">score</option><option value="amount">amount</option><option value="date">date</option></select>`;
+  sortWrap.innerHTML = `<span>${esc(tr("sort"))}</span><select><option value="score">${esc(tr("sort_score"))}</option><option value="amount">${esc(tr("sort_amount"))}</option><option value="date">${esc(tr("sort_date"))}</option></select>`;
   sortWrap.querySelector("select").addEventListener("change", ev => { state.sort = ev.target.value; renderList(); });
   tools.appendChild(sortWrap);
   head.appendChild(tools);
@@ -305,7 +439,7 @@ export function mountEchoes(container, D, api) {
   if (!echoes.length) {
     head.querySelector(".ech-tools").remove();
     listEl.className = "ech-empty";
-    listEl.innerHTML = `No exact-amount echoes were found within the 2% tolerance: nothing in this window arrived and left again as the same amount, or went out identically to several receivers, <b>which is itself a finding</b>.`;
+    listEl.innerHTML = tr("empty"); // contains the <b> emphasis, intentionally not escaped
     return;
   }
 
@@ -334,23 +468,23 @@ export function mountEchoes(container, D, api) {
   function renderList() {
     const v = sorted();
     if (!v.length) {
-      listEl.innerHTML = `<div class="ech-empty">No echoes of the selected kinds. Turn a kind back on to see them.</div>`;
+      listEl.innerHTML = `<div class="ech-empty">${esc(tr("empty_filtered"))}</div>`;
       return;
     }
     listEl.innerHTML = v.map(e => card(e)).join("");
   }
 
   function card(e) {
-    const phrase = e.kind === "fan_split" ? `Same amount to ${e.outs.length || e.n_targets} receivers` : KIND_PHRASE[e.kind];
-    const badge = e.match === "exact" ? `<span class="ech-badge exact">exact</span>` : `<span class="ech-badge">within 2%</span>`;
-    const ev = e.evidence || defaultEvidence(e, api);
+    const phrase = e.kind === "fan_split" ? fill(tr("kind_fan_split"), { n: e.outs.length || e.n_targets }) : tr("kind_" + e.kind);
+    const badge = e.match === "exact" ? `<span class="ech-badge exact">${esc(tr("badge_exact"))}</span>` : `<span class="ech-badge">${esc(tr("badge_within"))}</span>`;
+    const ev = e.evidence || defaultEvidence(e, api, tr);
     return `<article class="ech-card" data-id="${esc(e.echo_id)}">
-      <div class="ech-fig">${diagram(e, D, api, nodeRole)}<div>${badge}</div></div>
+      <div class="ech-fig">${diagram(e, D, api, nodeRole, tr)}<div>${badge}</div></div>
       <div class="ech-body">
         <div class="ech-kind">${esc(phrase)}</div>
-        <div class="ech-when"><b>${esc(whenText(e))}</b>${e.in_kzt > 0 ? ` · in ${esc(api.fmt(Math.round(e.in_kzt)))}` : ""} · out ${esc(api.fmt(Math.round(e.out_kzt)))} KZT · score ${e.score.toFixed(2)}</div>
+        <div class="ech-when"><b>${esc(whenText(e, tr, locale))}</b>${e.in_kzt > 0 ? ` · ${esc(tr("in"))} ${esc(api.fmt(Math.round(e.in_kzt)))}` : ""} · ${esc(tr("out"))} ${esc(api.fmt(Math.round(e.out_kzt)))} KZT · ${esc(tr("score"))} ${e.score.toFixed(2)}</div>
         <p class="ech-ev">${esc(ev)}</p>
-        <div class="ech-foot"><button type="button" class="ech-open" data-gid="${esc(e.gid)}">Open account</button><span class="ech-id">${esc(e.echo_id)} · ${esc(e.gid)}</span></div>
+        <div class="ech-foot"><button type="button" class="ech-open" data-gid="${esc(e.gid)}">${esc(tr("open_account"))}</button><span class="ech-id">${esc(e.echo_id)} · ${esc(e.gid)}</span></div>
       </div>
     </article>`;
   }
@@ -358,9 +492,11 @@ export function mountEchoes(container, D, api) {
   renderList();
 }
 
-function defaultEvidence(e, api) {
+// Fallback sentence when the payload carries no evidence string.
+function defaultEvidence(e, api, tr) {
   const f = n => api.fmt(Math.round(n));
-  if (e.kind === "fan_split") return `${f(e.out_kzt)} KZT went out to ${e.outs.length} receivers in matching amounts on ${e.date || "one day"}; consistent with a single instruction, worth checking.`;
-  if (e.kind === "split") return `${f(e.in_kzt)} KZT arrived and ${f(e.out_kzt)} KZT left as ${e.outs.length} parts within ${e.lag_days} day(s); worth checking whether the parts were pre-arranged.`;
-  return `${f(e.in_kzt)} KZT arrived and ${f(e.out_kzt)} KZT left again within ${e.lag_days} day(s); consistent with a pass-through, worth checking.`;
+  const vars = { in: f(e.in_kzt), out: f(e.out_kzt), n: e.outs.length, d: e.lag_days, date: e.date || tr("one_day") };
+  if (e.kind === "fan_split") return fill(tr("ev_fan_split"), vars);
+  if (e.kind === "split") return fill(tr("ev_split"), vars);
+  return fill(tr("ev_relay"), vars);
 }
