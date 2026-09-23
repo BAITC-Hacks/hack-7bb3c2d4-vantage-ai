@@ -14,6 +14,7 @@
   --fg:#EEF3FB; --muted:#8FA3BF; --primary:#00C8FF; --secondary:#009AF0; --amber:#FFB020;
   --display:Manrope,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
   --body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 
   --consolidator:#FF5C6C; --coordinator:#C77DFF; --transit:#00C8FF; --distributor:#009AF0;
   --terminal:#7A8AA8; --peripheral:#4A5B75;
@@ -24,173 +25,219 @@
   --edge:rgba(122,138,168,.22); --edge-dim:rgba(122,138,168,.06); --edge-on:rgba(0,200,255,.85);
   --arrow:rgba(0,200,255,.90); --ring:#EEF3FB; --row-hover:rgba(0,200,255,.07);
   --dot-edge:rgba(238,243,251,.28);
+  --rail:13.5rem; --top:3.6rem;
 }
 *{box-sizing:border-box}
-html{font-size:16px}
+html{font-size:16px;scroll-behavior:smooth}
 body{margin:0;font:1rem/1.5 var(--body);background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
 
-/* ------------------------------ header ------------------------------ */
-header{display:flex;align-items:center;gap:1.2rem;padding:.7rem 1.2rem;border-bottom:1px solid var(--line);
-       background:var(--panel);flex-wrap:wrap}
+/* ------------------------------ frame ------------------------------ */
+.top{position:fixed;top:0;left:0;right:0;height:var(--top);display:flex;align-items:center;gap:1rem;padding:0 1.2rem;
+     border-bottom:1px solid var(--line);background:var(--panel);z-index:10}
 .mark{display:flex;align-items:baseline}
-.mark b,.mark i{font:700 1.2rem/1 var(--display);font-style:normal}
+.mark b,.mark i{font:700 1.15rem/1 var(--display);font-style:normal}
 .mark i{color:var(--primary)}
-.title{padding-left:1rem;border-left:1px solid var(--line)}
-.title h1{font:600 1.05rem/1.2 var(--display);margin:0}
-.title p{margin:0;color:var(--muted);font-size:.875rem}
-.strip{display:flex;gap:.2rem;align-items:center;margin-left:auto;flex-wrap:wrap}
-.strip .s{padding:.2rem .7rem;text-align:center}
-.strip .s b{display:block;font:700 1.25rem/1.15 var(--display);font-variant-numeric:tabular-nums}
-.strip .s span{font-size:.75rem;color:var(--muted);white-space:nowrap}
-.strip .s.amber b{color:var(--amber)}
-.strip .arrow{color:var(--steel);font-size:1.1rem}
-.btn{padding:.5rem .8rem;border:1px solid var(--line);border-radius:8px;font-weight:600;font-size:.875rem;
-     color:var(--fg);background:var(--sunk)}
-.btn:hover{border-color:var(--primary)}
-.btn[aria-pressed=true]{background:var(--primary);color:var(--bg);border-color:var(--primary)}
+.case{padding-left:1rem;border-left:1px solid var(--line);font-size:.8125rem;color:var(--muted);line-height:1.25}
+.case b{display:block;color:var(--fg);font:600 .9375rem/1.25 var(--display)}
+.find{margin-left:auto;display:flex;align-items:center;gap:.5rem}
+.find input{width:19rem;padding:.45rem .7rem;border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--fg);
+            font:.9375rem/1.2 var(--mono);font-variant-numeric:tabular-nums}
+.find input:focus{outline:none;border-color:var(--primary)}
+.find input::placeholder{color:var(--steel);font-family:var(--body)}
 
-/* ------------------------------ layout ------------------------------ */
-main{display:grid;grid-template-columns:22rem minmax(0,1fr) 24rem;height:calc(100vh - 4.6rem);min-height:0}
-.left,.right{overflow:auto;min-height:0;background:var(--panel)}
-.left{border-right:1px solid var(--line);display:flex;flex-direction:column}
-.right{border-left:1px solid var(--line);padding:1rem 1.1rem 2rem}
-.stage{display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
-#cv{flex:1;display:block;width:100%;min-height:24rem;background:var(--bg);cursor:default}
-.mapbar{display:flex;align-items:center;gap:.5rem;padding:.55rem .9rem;border-bottom:1px solid var(--line);
-        background:var(--panel);flex-wrap:wrap}
-.mapbar .what{font-weight:600;font-size:.9375rem;flex:1;min-width:12rem}
+.rail{position:fixed;top:var(--top);bottom:0;left:0;width:var(--rail);border-right:1px solid var(--line);background:var(--panel);
+      padding:1rem 0;overflow:auto}
+.rail a{display:grid;grid-template-columns:2.2rem 1fr;align-items:baseline;gap:.4rem;padding:.55rem 1rem .55rem 1.1rem;color:var(--muted);
+        border-left:3px solid transparent}
+.rail a i{font:700 .8rem/1 var(--mono);font-style:normal;color:var(--steel)}
+.rail a span{font-size:.9375rem;font-weight:600;line-height:1.25}
+.rail a small{grid-column:2;font-size:.75rem;color:var(--steel);font-weight:400}
+.rail a:hover{color:var(--fg)}
+.rail a[aria-current=true]{color:var(--fg);border-left-color:var(--amber);background:var(--row-hover)}
+.rail a[aria-current=true] i{color:var(--amber)}
+.rail .foot{padding:1.2rem 1.1rem 0;font-size:.75rem;color:var(--steel);line-height:1.5}
+
+main{margin:var(--top) 0 0 var(--rail);min-height:calc(100vh - var(--top))}
+section.page{display:none;padding:2rem 2.4rem 4rem;max-width:96rem}
+section.page[data-on]{display:block}
+.ph{display:flex;align-items:baseline;gap:1rem;margin:0 0 .4rem}
+.ph i{font:700 .9rem/1 var(--mono);font-style:normal;color:var(--amber);letter-spacing:.06em}
+.ph h2{margin:0;font:700 1.75rem/1.15 var(--display);letter-spacing:-.02em}
+.lede{color:var(--muted);max-width:70ch;line-height:1.55;margin:0 0 1.6rem;font-size:1rem}
+.lede b{color:var(--fg);font-weight:600}
+hr.rule{border:0;border-top:1px solid var(--line);margin:1.6rem 0}
+
+/* ------------------------------ ledger figures ------------------------------ */
+.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 0 2rem}
+.ledger div{padding:1rem 1.2rem 1rem 0;border-right:1px solid var(--line-soft)}
+.ledger div:last-child{border-right:0}
+.ledger b{display:block;font:700 2.4rem/1 var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.ledger .amber b{color:var(--amber)}
+.ledger span{display:block;color:var(--muted);font-size:.85rem;margin-top:.35rem;line-height:1.35}
+
+/* ------------------------------ start cards ------------------------------ */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+h3.sec{font:650 .8rem/1 var(--display);text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0 0 .8rem}
+.lead{display:block;border:1px solid var(--line);border-radius:10px;padding:.9rem 1rem;background:var(--panel);cursor:pointer}
+.lead:hover{border-color:var(--primary)}
+.lead .r{font:700 .8rem/1 var(--mono);color:var(--amber);margin-bottom:.4rem}
+.lead .g{font:600 1rem/1.2 var(--mono);word-break:break-all}
+.lead .w{font-size:.85rem;color:var(--muted);line-height:1.45;margin-top:.4rem}
+.lead .t{margin-top:.5rem}
+.fact{border-left:3px solid var(--primary);padding:.3rem .9rem;margin:.6rem 0}
+.fact b{font:700 1.4rem/1.1 var(--display);font-variant-numeric:tabular-nums}
+.fact span{display:block;color:var(--muted);font-size:.875rem;line-height:1.4}
+.go{display:inline-block;margin-top:.6rem;color:var(--primary);font-weight:600;font-size:.875rem}
+.go:after{content:" →"}
+
+/* ------------------------------ pills, stamps ------------------------------ */
+.pill{display:inline-block;padding:.1rem .55rem;border-radius:4px;font-size:.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-family:var(--display)}
+.chip{display:inline-block;margin:.2rem .3rem .2rem 0;padding:.25rem .6rem;border:1px solid var(--line);border-radius:6px;font-size:.8125rem;cursor:pointer;font-family:var(--mono)}
+.chip:hover{border-color:var(--primary)}
+
+/* ------------------------------ review table ------------------------------ */
+table{border-collapse:collapse;width:100%;font-size:.9375rem}
+th,td{text-align:left;padding:.6rem .7rem;border-bottom:1px solid var(--line-soft);vertical-align:top}
+th{color:var(--muted);font-weight:650;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+td.wrap{color:var(--muted);line-height:1.45}
+tbody tr[data-gid]:hover td,tbody tr[data-frm]:hover td{background:var(--row-hover);cursor:pointer}
+td.right,th.right{text-align:right}
+.bar{display:inline-block;height:6px;border-radius:3px;background:var(--primary);vertical-align:middle;margin-right:.5rem}
+.rank{font:700 1rem/1 var(--mono);color:var(--muted)}
+
+/* ------------------------------ account / structures layout ------------------------------ */
+.explore{display:grid;grid-template-columns:minmax(0,1fr) 25rem;gap:1.4rem;align-items:start}
+.mapwrap{border:1px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden;position:relative}
+.mapbar{display:flex;align-items:center;gap:.6rem;padding:.55rem .9rem;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+.mapbar .what{font-weight:600;font-size:.9rem;flex:1;min-width:12rem}
 .mapbar .what span{color:var(--muted);font-weight:400}
 .seg{display:flex;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:.2rem}
-.seg button{padding:.3rem .7rem;font-size:.875rem;font-weight:600;color:var(--muted);border-radius:6px}
+.seg button{padding:.3rem .7rem;font-size:.85rem;font-weight:600;color:var(--muted);border-radius:6px}
 .seg button[aria-pressed=true]{background:var(--bg);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
-.legend{display:flex;flex-wrap:wrap;gap:.25rem .5rem;padding:.45rem .9rem;border-top:1px solid var(--line);
-        background:var(--panel);font-size:.8rem;color:var(--muted)}
+canvas.map{display:block;width:100%;height:34rem;cursor:default}
+.legend{display:flex;flex-wrap:wrap;gap:.25rem .5rem;padding:.45rem .9rem;border-top:1px solid var(--line);background:var(--panel);font-size:.8rem;color:var(--muted)}
 .legend span{display:flex;align-items:center;gap:.3rem;cursor:help;padding:.05rem .3rem;border-radius:4px}
 .legend span:hover{background:var(--row-hover);color:var(--fg)}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none;box-shadow:inset 0 0 0 1px var(--dot-edge)}
-.mapnote{position:absolute;left:.9rem;bottom:3rem;font-size:.8rem;color:var(--muted);pointer-events:none;
-         max-width:28rem;line-height:1.4}
-
-/* ------------------------------ left pane --------------------------- */
-.search{padding:.9rem 1rem .6rem}
-.search label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem}
-input{width:100%;padding:.55rem .7rem;border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--fg);
-      font:1rem/1.2 var(--body);font-variant-numeric:tabular-nums}
-input:focus{outline:none;border-color:var(--primary)}
-input::placeholder{color:var(--steel)}
-.tabs{display:flex;gap:.2rem;padding:0 1rem;border-bottom:1px solid var(--line)}
-.tab{padding:.5rem .7rem;font-size:.9375rem;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
-.tab[aria-selected=true]{color:var(--fg);border-bottom-color:var(--primary)}
-.list{overflow:auto;flex:1;min-height:0}
-.list .intro{padding:.6rem 1rem .3rem;font-size:.8rem;color:var(--muted);line-height:1.45}
-.row{display:grid;grid-template-columns:2rem 1fr;gap:.2rem .5rem;padding:.55rem 1rem;border-bottom:1px solid var(--line-soft);cursor:pointer}
-.row:hover{background:var(--row-hover)}
-.row[aria-selected=true]{background:var(--row-hover);box-shadow:inset 3px 0 0 var(--amber)}
-.row .n{font:700 .9375rem/1.3 var(--display);color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
-.row .h{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;font-size:.9375rem;font-weight:600;font-variant-numeric:tabular-nums}
-.row .w{grid-column:2;font-size:.8125rem;color:var(--muted);line-height:1.4}
-.pill{display:inline-block;padding:.08rem .5rem;border-radius:999px;font-size:.78rem;font-weight:650}
-
-/* ------------------------------ right pane -------------------------- */
-.k{color:var(--muted);font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;margin:1rem 0 .3rem}
+.mapnote{position:absolute;left:.9rem;bottom:2.6rem;font-size:.8rem;color:var(--muted);pointer-events:none;max-width:28rem;line-height:1.4}
+.panel{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:1rem 1.1rem 1.2rem}
+.k{color:var(--muted);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin:1.1rem 0 .3rem}
 .k:first-child{margin-top:0}
-.gid{font:700 1.15rem/1.3 var(--display);font-variant-numeric:tabular-nums;word-break:break-all}
-.sentence{font-size:.9375rem;line-height:1.55}
+.gid{font:600 1.05rem/1.3 var(--mono);word-break:break-all}
+.sentence{font-size:.9375rem;line-height:1.55;margin:.3rem 0 0}
 .sentence b{font-variant-numeric:tabular-nums}
 .ev{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:.55rem .7rem;font-size:.85rem;color:var(--muted);line-height:1.45;margin-top:.4rem}
-.ev code{color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem}
+.ev code{color:var(--fg);font-family:var(--mono);font-size:.8rem}
 .stat{display:flex;justify-content:space-between;gap:.75rem;font-size:.9rem;padding:.2rem 0;color:var(--muted)}
 .stat b{font-variant-numeric:tabular-nums;font-weight:650;color:var(--fg);text-align:right}
 .prio{display:flex;align-items:baseline;gap:.6rem}
-.prio b{font:700 1.9rem/1 var(--display);color:var(--amber);font-variant-numeric:tabular-nums}
+.prio b{font:700 2rem/1 var(--display);color:var(--amber);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .prio span{font-size:.875rem;color:var(--muted)}
 .caveat{border-left:3px solid var(--amber);padding:.4rem .7rem;font-size:.875rem;color:var(--muted);line-height:1.45;margin-top:.6rem;background:var(--sunk);border-radius:0 8px 8px 0}
-.chip{display:inline-block;margin:.2rem .3rem .2rem 0;padding:.25rem .6rem;border:1px solid var(--line);border-radius:8px;font-size:.8125rem;cursor:pointer}
-.chip:hover{border-color:var(--primary)}
 .empty{color:var(--muted);font-size:.9rem;line-height:1.5}
+.list{max-height:34rem;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.row{display:grid;grid-template-columns:2.2rem 1fr;gap:.15rem .5rem;padding:.55rem .9rem;border-bottom:1px solid var(--line-soft);cursor:pointer}
+.row:hover{background:var(--row-hover)}
+.row[aria-selected=true]{background:var(--row-hover);box-shadow:inset 3px 0 0 var(--amber)}
+.row .n{font:700 .9rem/1.4 var(--mono);color:var(--muted);text-align:right}
+.row .h{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;font-size:.9375rem;font-weight:600}
+.row .w{grid-column:2;font-size:.8125rem;color:var(--muted);line-height:1.4}
 
-/* ------------------------------ overlay ----------------------------- */
-#gaps{display:none;position:fixed;inset:4.6rem 0 0 0;background:var(--bg);overflow:auto;padding:1.2rem 1.6rem 3rem;z-index:5}
-#gaps[data-on]{display:block}
-#gaps h2{font:700 1.4rem/1.2 var(--display);margin:0 0 .3rem}
-#gaps .lede{color:var(--muted);max-width:72ch;line-height:1.5;margin:0 0 1rem}
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(12rem,1fr));gap:.6rem;margin-bottom:1.4rem}
-.tile{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:.6rem .75rem}
-.tile b{display:block;font:650 1.35rem/1.2 var(--display);font-variant-numeric:tabular-nums}
-.tile span{display:block;font-size:.85rem;color:var(--muted);line-height:1.35;margin-top:.15rem}
-.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(24rem,1fr));gap:1.4rem}
+/* ------------------------------ limits ------------------------------ */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(12rem,1fr));gap:.6rem;margin-bottom:1.6rem}
+.tile{border:1px solid var(--line);border-radius:9px;padding:.7rem .8rem;background:var(--panel)}
+.tile b{display:block;font:700 1.5rem/1.1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tile span{display:block;font-size:.85rem;color:var(--muted);line-height:1.35;margin-top:.2rem}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(26rem,1fr));gap:1.6rem}
 .cols h3{font:650 1.05rem/1.3 var(--display);margin:0 0 .3rem}
 .cols .note{color:var(--muted);font-size:.9rem;line-height:1.5;margin:0 0 .6rem;max-width:60ch}
 .ask{border:1px solid var(--line);border-left:3px solid var(--primary);border-radius:9px;padding:.55rem .75rem;margin-bottom:.5rem;background:var(--panel)}
 .ask .h{font-weight:650;font-size:.9375rem;display:flex;gap:.5rem}
-.ask .h i{font-style:normal;color:var(--primary)}
+.ask .h i{font-style:normal;color:var(--primary);font-family:var(--mono)}
 .ask .w{font-size:.875rem;color:var(--muted);line-height:1.45;margin-top:.25rem}
 .ask .f{font-size:.875rem;color:var(--muted);margin-top:.3rem}
 .ask .f b{color:var(--fg);font-variant-numeric:tabular-nums}
-table{border-collapse:collapse;width:100%;font-size:.9rem}
-th,td{text-align:left;padding:.4rem .55rem;border-bottom:1px solid var(--line-soft);white-space:nowrap;vertical-align:top}
-td.wrap{white-space:normal;color:var(--muted);line-height:1.4}
-th{color:var(--muted);font-weight:650;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em}
-tbody tr[data-gid]:hover td{background:var(--row-hover);cursor:pointer}
-.num{font-variant-numeric:tabular-nums;text-align:right}
+.module{min-height:20rem}
 .boot{padding:3rem;font-size:1rem;color:var(--muted);line-height:1.6}
 
-@media (max-width:1180px){
-  main{grid-template-columns:20rem minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;height:auto;min-height:calc(100vh - 4.6rem)}
-  .left{grid-row:1/3}
-  .stage{min-height:34rem}
-  .right{border-left:0;border-top:1px solid var(--line)}
-}
-@media (max-width:800px){
-  main{display:block}
-  .left{max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}
-  .stage{min-height:28rem}
-  .strip{margin-left:0}
+@media (max-width:1100px){
+  :root{--rail:0px}
+  .rail{position:static;width:auto;display:flex;overflow-x:auto;padding:0;border-right:0;border-bottom:1px solid var(--line);margin-top:var(--top)}
+  .rail a{border-left:0;border-bottom:3px solid transparent;grid-template-columns:auto 1fr;white-space:nowrap}
+  .rail a[aria-current=true]{border-bottom-color:var(--amber)}
+  .rail a small,.rail .foot{display:none}
+  main{margin-top:0}
+  .explore,.grid2,.grid3{grid-template-columns:1fr}
+  section.page{padding:1.4rem 1.2rem 3rem}
+  .find input{width:12rem}
+  .case{display:none}
 }
 </style>
 
-<header>
+<div class="top">
   <span class="mark"><b>Hack</b><i>Alem</i></span>
-  <div class="title">
-    <h1>Money Graph</h1>
-    <p>Which of these accounts should an analyst look at first, and why.</p>
-  </div>
-  <div class="strip" id="strip"></div>
-  <button class="btn" id="gapsBtn" aria-pressed="false">Where the data runs out</button>
-</header>
+  <div class="case"><b>Money Graph</b>Case file · outbound crawl, 4 hops · 1–31 July 2026</div>
+  <div class="find"><input id="q" list="ids" placeholder="find an account by id" autocomplete="off" spellcheck="false" inputmode="numeric"><datalist id="ids"></datalist></div>
+</div>
+
+<nav class="rail" id="rail">
+  <a href="#start"><i>01</i><span>Start</span><small>the case in one screen</small></a>
+  <a href="#review"><i>02</i><span>Who to review first</span><small>ranked, with reasons</small></a>
+  <a href="#account"><i>03</i><span>One account</span><small>its money, its role, its neighbours</small></a>
+  <a href="#structures"><i>04</i><span>Structures</span><small>funnels, chains, loops, fan-outs</small></a>
+  <a href="#replay"><i>05</i><span>Replay the month</span><small>July, day by day</small></a>
+  <a href="#echoes"><i>06</i><span>Amount echoes</span><small>same sum in, same sum out</small></a>
+  <a href="#limits"><i>07</i><span>Where the data runs out</span><small>and what to ask for next</small></a>
+  <div class="foot">Every figure is a measurement from the July extract. Every reading of it is a hypothesis to test, not a finding of guilt.</div>
+</nav>
 
 <main>
-  <aside class="left">
-    <div class="search">
-      <label for="q">Find an account</label>
-      <input id="q" list="ids" placeholder="type an account id" autocomplete="off" spellcheck="false" inputmode="numeric">
-      <datalist id="ids"></datalist>
-    </div>
-    <div class="tabs" role="tablist">
-      <button class="tab" role="tab" data-t="acc" aria-selected="true">Accounts to review</button>
-      <button class="tab" role="tab" data-t="frm" aria-selected="false">Structures</button>
-    </div>
-    <div class="list" id="list"></div>
-  </aside>
-
-  <div class="stage">
-    <div class="mapbar">
-      <div class="what" id="what"></div>
-      <div class="seg" id="view">
-        <button data-v="near" aria-pressed="true">Around this account</button>
-        <button data-v="all" aria-pressed="false">Whole network</button>
+  <section class="page" id="p-start"></section>
+  <section class="page" id="p-review"></section>
+  <section class="page" id="p-account">
+    <div class="ph"><i>03</i><h2>One account</h2></div>
+    <p class="lede">Pick an account from any list, or type its id above. The map shows the money around it: who paid it on the left, who it paid on the right. Every arrow points the way the money moved.</p>
+    <div class="explore">
+      <div class="mapwrap">
+        <div class="mapbar"><div class="what" id="what-a"></div>
+          <div class="seg" id="view-a"><button data-v="near" aria-pressed="true">Around this account</button><button data-v="all" aria-pressed="false">Whole network</button></div></div>
+        <canvas class="map" id="cv-a"></canvas>
+        <div class="mapnote" id="note-a"></div>
+        <div class="legend" id="legend-a"></div>
       </div>
+      <div class="panel" id="panel-a"></div>
     </div>
-    <canvas id="cv"></canvas>
-    <div class="mapnote" id="mapnote"></div>
-    <div class="legend" id="legend"></div>
-  </div>
-
-  <aside class="right" id="panel"></aside>
+  </section>
+  <section class="page" id="p-structures">
+    <div class="ph"><i>04</i><h2>Structures</h2></div>
+    <p class="lede">A ranked account is a name, and an investigator cannot act on a name. These are groups of accounts that only make sense read together, ranked by what an investigator can act on. Each carries its <b>breaking point</b>: the one account whose removal breaks most of it.</p>
+    <div class="explore" style="grid-template-columns:22rem minmax(0,1fr) 24rem">
+      <div class="list" id="list-f"></div>
+      <div class="mapwrap">
+        <div class="mapbar"><div class="what" id="what-f"></div></div>
+        <canvas class="map" id="cv-f"></canvas>
+        <div class="legend" id="legend-f"></div>
+      </div>
+      <div class="panel" id="panel-f"></div>
+    </div>
+  </section>
+  <section class="page" id="p-replay">
+    <div class="ph"><i>05</i><h2>Replay the month</h2></div>
+    <p class="lede">July 2026, one day at a time, on the same hop layout: known clients on the left, four hops to the right. Watch which days carry the bursts and how far the money travels in a day.</p>
+    <div class="module" id="mod-replay"></div>
+  </section>
+  <section class="page" id="p-echoes">
+    <div class="ph"><i>06</i><h2>Amount echoes</h2></div>
+    <p class="lede">An exact sum arrives at an account and leaves again as the same sum, or split into parts, within a day. Or one account sends the identical amount to several receivers on the same day. Each is a hypothesis for an analyst to check against what the transfers were said to be for.</p>
+    <div class="module" id="mod-echoes"></div>
+  </section>
+  <section class="page" id="p-limits"></section>
 </main>
-
-<div id="gaps"></div>
 
 <script type="module">
 /* Nothing on this page is fetched from anywhere but the run's own output. */
@@ -203,6 +250,10 @@ try {
      beside it, served over HTTP rather than opened from disk. Start it with <code>python3 run.py --serve</code>.</div>`;
   throw err;
 }
+/* The two optional sections live in their own modules. If a module is missing the
+   section says so rather than taking the whole screen down with it. */
+const replayMod = await import("./replay.js").catch(() => null);
+const echoesMod = await import("./echoes.js").catch(() => null);
 
 /* ------------------------------ helpers ------------------------------ */
 const $ = id => document.getElementById(id);
@@ -215,7 +266,10 @@ const soft = (h, a) => { const c = rgbOf(h); return `rgba(${c[0]},${c[1]},${c[2]
 const plural = (n, one, many) => `${fmt(n)} ${n === 1 ? one : many}`;
 const AMBER = css("amber");
 const roleCol = r => css(r) || css("steel");
-const pill = r => `<span class="pill" style="background:${soft(roleCol(r), .18)};color:${roleCol(r)}">${esc(String(r).replace(/_/g, " "))}</span>`;
+const roleName = r => String(r ?? "").replace(/_/g, " ");
+const pill = r => `<span class="pill" style="background:${soft(roleCol(r), .18)};color:${roleCol(r)}">${esc(roleName(r))}</span>`;
+const short = g => "…" + String(g).slice(-7);
+const dateWord = d => { const x = new Date(d + "T00:00:00"); return isNaN(x) ? d : x.getDate() + " " + x.toLocaleString("en-GB", { month: "long" }); };
 
 /* Plain definitions. The thresholds are the ones in src/moneygraph/roles.py. */
 const ROLE_DEF = {
@@ -258,224 +312,161 @@ const KNOW = new Map((D.node_completeness || []).map(r => [String(r.gid), r]));
 const maxHop = Math.max(...D.nodes.map(n => n.hop));
 const atEdge = n => n.hop === maxHop && n.outDeg === 0;
 const abstained = D.nodes.filter(n => n.role.startsWith("abstained")).length;
-
-/* ------------------------------ header ------------------------------ */
-$("strip").innerHTML = [
-  [D.meta.seeds, "known clients", ""],
-  [D.meta.nodes, "accounts reached", ""],
-  [TOP.length, "to review first", "amber"],
-  [FORMS.length, "structures found", ""],
-  [abstained, "not judged", ""],
-].map(([v, l, c], i) => `${i ? '<span class="arrow">→</span>' : ""}<div class="s ${c}"><b>${fmt(v)}</b><span>${l}</span></div>`).join("");
-
+const reasonOf = r => String(r.why || "").replace(/^[a-z_]+:\s*/, "");
 $("ids").innerHTML = D.nodes.map(n => `<option value="${n.id}">`).join("");
 
-/* ------------------------------ state ------------------------------ */
-let view = "near";                // "near" or "all"
-let focus = null;                 // {type:"node", n} or {type:"form", f}
-let hovered = null;
-const pos = new Map();            // id -> {x,y,r} for the nodes currently drawn
-let drawnEdges = [];              // edges among drawn nodes
-let hidden = 0;                   // nodes not drawn because a ring was capped
-let breakId = null;
+const api = { selectNode: id => go("account", String(id)), roleColor: roleCol, fmt };
 
-/* ------------------------------ layouts ------------------------------ */
-const cv = $("cv"), ctx = cv.getContext("2d");
-let W = 0, H = 0;
-const DPR = Math.min(devicePixelRatio || 1, 2);
-const radius = n => n.seed ? 5 : 2.6 + Math.min(4, Math.log10(1 + n.inKzt + n.outKzt) * .65);
-const CAP = 28;                   // most nodes drawn per ring around an account
+/* ------------------------------ the map, as a factory ------------------------------ */
+/* Two sections draw a map: the account section and the structures section. Each gets its
+   own canvas and its own state; the drawing code is shared. */
+function createMap(canvas, opts) {
+  const ctx = canvas.getContext("2d");
+  let W = 0, H = 0, hovered = null;
+  const DPR = Math.min(devicePixelRatio || 1, 2);
+  const pos = new Map(); let drawnEdges = [], hidden = 0;
+  const M = { focus: null, view: "near", breakId: null, pos, layoutInfo: null };
+  const radius = n => n.seed ? 5 : 2.6 + Math.min(4, Math.log10(1 + n.inKzt + n.outKzt) * .65);
+  const CAP = 28;
 
-function spread(ids, x, top, bottom) {
-  const gap = (bottom - top) / (ids.length + 1);
-  ids.forEach((id, i) => { const n = byId.get(id); pos.set(id, { x, y: top + gap * (i + 1), r: radius(n) }); });
-}
-
-function layoutNear(n) {
-  pos.clear(); hidden = 0;
-  const id = String(n.id);
-  const byKzt = (es, key) => es.slice().sort((a, b) => b.kzt - a.kzt).map(e => e[key]);
-  const take = ids => { const u = [...new Set(ids)].filter(x => x !== id); if (u.length > CAP) { hidden += u.length - CAP; return u.slice(0, CAP); } return u; };
-  const in1 = take(byKzt(incoming.get(id) || [], "s"));
-  // An account that both paid and was paid by this one is drawn once, on the payer side,
-  // with arrows both ways, rather than twice or only on the right.
-  const out1 = take(byKzt(outgoing.get(id) || [], "t").filter(t => !in1.includes(t)));
-  const seen = new Set([id, ...in1, ...out1]);
-  const ring = (ids, map, key) => {
-    const r = [];
-    for (const p of ids) for (const e of byKzt(map.get(p) || [], key)) if (!seen.has(e)) { seen.add(e); r.push(e); }
-    return take(r);
-  };
-  const in2 = ring(in1, incoming, "s"), out2 = ring(out1, outgoing, "t");
-  const cols = [in2, in1, [id], out1, out2];
-  const padL = 70, padR = 70, top = 40, bottom = H - 30;
-  const step = (W - padL - padR) / 4;
-  cols.forEach((ids, i) => spread(ids, padL + step * i, top, bottom));
-  const set = new Set(pos.keys());
-  drawnEdges = D.edges.filter(e => set.has(e.s) && set.has(e.t));
-  return { in1: in1.length, out1: out1.length, in2: in2.length, out2: out2.length };
-}
-
-function layoutForm(f) {
-  pos.clear(); hidden = 0;
-  const mem = [...(MEMBERS.get(String(f.formation_id)) || [])].filter(g => byId.has(g));
-  const hops = [...new Set(mem.map(g => byId.get(g).hop))].sort((a, b) => a - b);
-  const padL = 70, padR = 70, top = 40, bottom = H - 30;
-  const step = hops.length > 1 ? (W - padL - padR) / (hops.length - 1) : 0;
-  hops.forEach((h, i) => spread(mem.filter(g => byId.get(g).hop === h).sort((a, b) => byId.get(b).outKzt - byId.get(a).outKzt),
-    hops.length > 1 ? padL + step * i : W / 2, top, bottom));
-  const set = new Set(pos.keys());
-  drawnEdges = D.edges.filter(e => set.has(e.s) && set.has(e.t));
-  return hops;
-}
-
-function layoutAll() {
-  pos.clear(); hidden = 0;
-  const padL = 88, padR = 80, top = 34, bottom = H - 24;
-  for (const n of D.nodes) {
-    const jig = ((+String(n.id).slice(-4) % 997) / 997 - .5);
-    const band = Math.min(62, (W - padL - padR) / (maxHop + 1) * .55);
-    pos.set(String(n.id), { x: padL + (W - padL - padR) * (n.hop / maxHop) + jig * band, y: top + (bottom - top) * n.y, r: radius(n) });
+  function spread(ids, x, top, bottom) {
+    const gap = (bottom - top) / (ids.length + 1);
+    ids.forEach((id, i) => pos.set(id, { x, y: top + gap * (i + 1), r: radius(byId.get(id)) }));
   }
-  drawnEdges = D.edges;
-}
-
-/* ------------------------------ drawing ------------------------------ */
-function highlightSet() {
-  if (!focus) return { nodes: new Set(), edges: new Set() };
-  if (focus.type === "form") {
-    const nodes = new Set(MEMBERS.get(String(focus.f.formation_id)) || []);
-    if (breakId) nodes.add(breakId);
-    return { nodes, edges: new Set(D.edges.filter(e => nodes.has(e.s) && nodes.has(e.t))) };
+  function layoutNear(n) {
+    pos.clear(); hidden = 0;
+    const id = String(n.id);
+    const byKzt = (es, key) => es.slice().sort((a, b) => b.kzt - a.kzt).map(e => e[key]);
+    const take = ids => { const u = [...new Set(ids)].filter(x => x !== id); if (u.length > CAP) { hidden += u.length - CAP; return u.slice(0, CAP); } return u; };
+    const in1 = take(byKzt(incoming.get(id) || [], "s"));
+    // An account that both paid and was paid by this one is drawn once, on the payer side,
+    // with arrows both ways.
+    const both = (outgoing.get(id) || []).filter(e => in1.includes(e.t)).length;
+    const out1 = take(byKzt(outgoing.get(id) || [], "t").filter(t => !in1.includes(t)));
+    const seen = new Set([id, ...in1, ...out1]);
+    const ring = (ids, map, key) => { const r = []; for (const p of ids) for (const e of byKzt(map.get(p) || [], key)) if (!seen.has(e)) { seen.add(e); r.push(e); } return take(r); };
+    const in2 = ring(in1, incoming, "s"), out2 = ring(out1, outgoing, "t");
+    const cols = [in2, in1, [id], out1, out2], padL = 70, padR = 70, top = 40, bottom = H - 30, step = (W - padL - padR) / 4;
+    cols.forEach((ids, i) => spread(ids, padL + step * i, top, bottom));
+    const set = new Set(pos.keys()); drawnEdges = D.edges.filter(e => set.has(e.s) && set.has(e.t));
+    return { in1: in1.length, out1: out1.length, both };
   }
-  const id = String(focus.n.id), nodes = new Set([id]), edges = new Set();
-  for (const e of incoming.get(id) || []) { nodes.add(e.s); edges.add(e); }
-  for (const e of outgoing.get(id) || []) { nodes.add(e.t); edges.add(e); }
-  return { nodes, edges };
-}
-
-function arrow(a, b, col) {
-  const dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1;
-  const ux = dx / L, uy = dy / L, tx = b.x - ux * (b.r + 2), ty = b.y - uy * (b.r + 2);
-  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(tx, ty);
-  ctx.lineTo(tx - ux * 7 - uy * 3.4, ty - uy * 7 + ux * 3.4);
-  ctx.lineTo(tx - ux * 7 + uy * 3.4, ty - uy * 7 - ux * 3.4);
-  ctx.closePath(); ctx.fill();
-}
-
-function draw() {
-  ctx.clearRect(0, 0, W, H);
-  ctx.font = "13px " + css("body"); ctx.textAlign = "center";
-  const hl = highlightSet();
-  const all = view === "all";
-  if (all) {
-    for (let h = 0; h <= maxHop; h++) {
+  function layoutForm(f) {
+    pos.clear(); hidden = 0;
+    const mem = [...(MEMBERS.get(String(f.formation_id)) || [])].filter(g => byId.has(g));
+    const hops = [...new Set(mem.map(g => byId.get(g).hop))].sort((a, b) => a - b);
+    const padL = 70, padR = 70, top = 40, bottom = H - 30, step = hops.length > 1 ? (W - padL - padR) / (hops.length - 1) : 0;
+    hops.forEach((h, i) => spread(mem.filter(g => byId.get(g).hop === h).sort((a, b) => byId.get(b).outKzt - byId.get(a).outKzt), hops.length > 1 ? padL + step * i : W / 2, top, bottom));
+    const set = new Set(pos.keys()); drawnEdges = D.edges.filter(e => set.has(e.s) && set.has(e.t));
+    return hops;
+  }
+  function layoutAll() {
+    pos.clear(); hidden = 0;
+    const padL = 88, padR = 80, top = 34, bottom = H - 24;
+    for (const n of D.nodes) {
+      const jig = ((+String(n.id).slice(-4) % 997) / 997 - .5), band = Math.min(62, (W - padL - padR) / (maxHop + 1) * .55);
+      pos.set(String(n.id), { x: padL + (W - padL - padR) * (n.hop / maxHop) + jig * band, y: top + (bottom - top) * n.y, r: radius(n) });
+    }
+    drawnEdges = D.edges;
+  }
+  function highlight() {
+    const f = M.focus; if (!f) return { nodes: new Set(), edges: new Set() };
+    if (f.type === "form") { const nodes = new Set(MEMBERS.get(String(f.f.formation_id)) || []); if (M.breakId) nodes.add(M.breakId); return { nodes, edges: new Set(D.edges.filter(e => nodes.has(e.s) && nodes.has(e.t))) }; }
+    const id = String(f.n.id), nodes = new Set([id]), edges = new Set();
+    for (const e of incoming.get(id) || []) { nodes.add(e.s); edges.add(e); }
+    for (const e of outgoing.get(id) || []) { nodes.add(e.t); edges.add(e); }
+    return { nodes, edges };
+  }
+  function arrow(a, b, col) {
+    const dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, tx = b.x - ux * (b.r + 2), ty = b.y - uy * (b.r + 2);
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx - ux * 7 - uy * 3.4, ty - uy * 7 + ux * 3.4); ctx.lineTo(tx - ux * 7 + uy * 3.4, ty - uy * 7 - ux * 3.4); ctx.closePath(); ctx.fill();
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H); ctx.font = "13px " + css("body"); ctx.textAlign = "center";
+    const hl = highlight(), all = M.view === "all";
+    if (all) for (let h = 0; h <= maxHop; h++) {
       const x = 88 + (W - 168) * (h / maxHop);
       ctx.strokeStyle = css("grid"); ctx.beginPath(); ctx.moveTo(x, 26); ctx.lineTo(x, H - 24); ctx.stroke();
       ctx.fillStyle = css("grid-label"); ctx.fillText(h === 0 ? "known clients" : "hop " + h, x, 18);
+    } else if (M.focus?.type === "node") {
+      (W < 900 ? ["2 hops in", "paid it", "this one", "paid by it", "2 hops out"]
+               : ["paid the payers", "paid this account", "this account", "were paid by it", "were paid next"]).forEach((t, i) => { ctx.fillStyle = css("grid-label"); ctx.fillText(t, 70 + (W - 140) / 4 * i, 22); });
+    } else if (M.focus?.type === "form" && M.layoutInfo) {
+      M.layoutInfo.forEach((h, i, arr) => { ctx.fillStyle = css("grid-label"); ctx.fillText(h === 0 ? "known clients" : "hop " + h, arr.length > 1 ? 70 + (W - 140) / (arr.length - 1) * i : W / 2, 22); });
     }
-  } else if (focus?.type === "node") {
-    const labels = ["paid the payers", "paid this account", "this account", "were paid by it", "were paid next"];
-    labels.forEach((t, i) => { ctx.fillStyle = css("grid-label"); ctx.fillText(t, 70 + (W - 140) / 4 * i, 22); });
+    const dim = hl.nodes.size > 0;
+    for (const e of drawnEdges) {
+      const a = pos.get(e.s), b = pos.get(e.t); if (!a || !b) continue;
+      const on = hl.edges.has(e);
+      ctx.strokeStyle = on ? css("edge-on") : (dim && all ? css("edge-dim") : css("edge"));
+      ctx.lineWidth = all ? (on ? 1.6 : .7) : Math.max(.8, Math.min(6, Math.log10(1 + e.kzt) - 3)) * (on ? 1.2 : 1);
+      ctx.beginPath(); const mx = (a.x + b.x) / 2; ctx.moveTo(a.x, a.y); ctx.bezierCurveTo(mx, a.y, mx, b.y, b.x, b.y); ctx.stroke();
+      if (!all || on) arrow(a, b, on ? css("arrow") : css("edge"));
+    }
+    for (const [id, p] of pos) {
+      const n = byId.get(id), on = !dim || hl.nodes.has(id) || !all;
+      ctx.globalAlpha = on ? 1 : .18; ctx.fillStyle = roleCol(n.role);
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.2832); ctx.fill();
+      if (n.seed) { ctx.strokeStyle = css("ring"); ctx.lineWidth = 1; ctx.stroke(); }
+    }
+    ctx.globalAlpha = 1;
+    const sel = M.focus?.type === "node" ? pos.get(String(M.focus.n.id)) : null;
+    if (sel) { ctx.strokeStyle = css("ring"); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sel.x, sel.y, sel.r + 6, 0, 6.2832); ctx.stroke(); }
+    const bp = M.breakId ? pos.get(M.breakId) : null;
+    if (bp) { ctx.strokeStyle = AMBER; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(bp.x, bp.y, bp.r + 8, 0, 6.2832); ctx.stroke();
+      ctx.fillStyle = AMBER; ctx.textAlign = "left"; ctx.font = "600 13px " + css("display"); ctx.fillText("breaking point", bp.x + bp.r + 14, bp.y + 4); }
+    ctx.textAlign = "left"; ctx.font = "12px " + css("mono");
+    const small = !all && pos.size <= 40;
+    for (const [id, p] of pos) {
+      const isF = sel && id === String(M.focus.n.id);
+      if (!(isF || small || hovered === id)) continue;
+      ctx.fillStyle = isF || hovered === id ? css("fg") : css("muted");
+      ctx.fillText(isF || hovered === id ? `${id} · ${roleName(byId.get(id).role)}` : short(id), p.x + p.r + 5, p.y + 4);
+    }
   }
-  const dim = hl.nodes.size > 0;
-  for (const e of drawnEdges) {
-    const a = pos.get(e.s), b = pos.get(e.t); if (!a || !b) continue;
-    const on = hl.edges.has(e);
-    ctx.strokeStyle = on ? css("edge-on") : (dim && all ? css("edge-dim") : css("edge"));
-    ctx.lineWidth = all ? (on ? 1.6 : .7) : Math.max(.8, Math.min(6, Math.log10(1 + e.kzt) - 3)) * (on ? 1.2 : 1);
-    ctx.beginPath(); const mx = (a.x + b.x) / 2;
-    ctx.moveTo(a.x, a.y); ctx.bezierCurveTo(mx, a.y, mx, b.y, b.x, b.y); ctx.stroke();
-    if (!all || on) arrow(a, b, on ? css("arrow") : css("edge"));
+  function relayout() {
+    if (M.view === "all") { layoutAll(); M.layoutInfo = null; opts.onLayout?.({ mode: "all", hidden }); }
+    else if (M.focus?.type === "form") { M.layoutInfo = layoutForm(M.focus.f); opts.onLayout?.({ mode: "form", hops: M.layoutInfo, count: pos.size }); }
+    else if (M.focus?.type === "node") { M.layoutInfo = null; opts.onLayout?.({ mode: "near", hidden, ...layoutNear(M.focus.n) }); }
+    else { pos.clear(); drawnEdges = []; }
   }
-  for (const [id, p] of pos) {
-    const n = byId.get(id);
-    const on = !dim || hl.nodes.has(id) || !all;
-    ctx.globalAlpha = on ? 1 : .18;
-    ctx.fillStyle = roleCol(n.role);
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.2832); ctx.fill();
-    if (n.seed) { ctx.strokeStyle = css("ring"); ctx.lineWidth = 1; ctx.stroke(); }
+  function resize() {
+    const r = canvas.getBoundingClientRect(); if (!r.width) return;
+    W = r.width; H = r.height; canvas.width = W * DPR; canvas.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    relayout(); draw();
   }
-  ctx.globalAlpha = 1;
-  const sel = focus?.type === "node" ? pos.get(String(focus.n.id)) : null;
-  if (sel) { ctx.strokeStyle = css("ring"); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sel.x, sel.y, sel.r + 6, 0, 6.2832); ctx.stroke(); }
-  const bp = breakId ? pos.get(breakId) : null;
-  if (bp) {
-    ctx.strokeStyle = AMBER; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(bp.x, bp.y, bp.r + 8, 0, 6.2832); ctx.stroke();
-    ctx.fillStyle = AMBER; ctx.textAlign = "left"; ctx.font = "600 13px " + css("display");
-    ctx.fillText("breaking point", bp.x + bp.r + 14, bp.y + 4);
-  }
-  /* Labels: the focus always, the rest of a small view, and whatever is hovered. */
-  ctx.textAlign = "left"; ctx.font = "12px " + css("body");
-  const small = !all && pos.size <= 40;
-  for (const [id, p] of pos) {
-    const isF = sel && id === String(focus.n.id);
-    if (!(isF || small || hovered === id)) continue;
-    ctx.fillStyle = isF || hovered === id ? css("fg") : css("muted");
-    const n = byId.get(id);
-    ctx.fillText(isF || hovered === id ? `${id} · ${n.role.replace(/_/g, " ")}` : "…" + id.slice(-7), p.x + p.r + 5, p.y + 4);
-  }
+  new ResizeObserver(resize).observe(canvas);
+  const pick = (mx, my) => { let best = null, bd = 110; for (const [id, p] of pos) { const d = (p.x - mx) ** 2 + (p.y - my) ** 2; if (d < bd) { bd = d; best = id; } } return best; };
+  canvas.addEventListener("mousemove", e => { const r = canvas.getBoundingClientRect(), h = pick(e.clientX - r.left, e.clientY - r.top); if (h !== hovered) { hovered = h; canvas.style.cursor = h ? "pointer" : "default"; draw(); } });
+  canvas.addEventListener("mouseleave", () => { hovered = null; draw(); });
+  canvas.addEventListener("click", () => { if (hovered) api.selectNode(hovered); });
+  M.update = () => { relayout(); draw(); };
+  return M;
 }
 
-function resize() {
-  const r = cv.getBoundingClientRect(); W = r.width; H = r.height;
-  cv.width = W * DPR; cv.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  relayout(); draw();
-}
-new ResizeObserver(resize).observe(cv);
-
-function relayout() {
-  const note = $("mapnote"), what = $("what");
-  if (view === "all") {
-    layoutAll();
-    what.innerHTML = `All ${fmt(D.nodes.length)} accounts <span>· left to right is distance from the known clients · arrows point the way the money moved</span>`;
-    note.textContent = focus ? "The selection and its direct transfers are lit; everything else is dimmed." : "";
-  } else if (focus?.type === "form") {
-    const hops = layoutForm(focus.f);
-    what.innerHTML = `${esc(kindName(focus.f.kind))} #${esc(focus.f.rank)} <span>· ${plural(pos.size, "account", "accounts")} across ${plural(hops.length, "hop", "hops")} · ${esc(KIND_DEF[focus.f.kind] || "")}</span>`;
-    note.textContent = "";
-  } else if (focus?.type === "node") {
-    const c = layoutNear(focus.n);
-    what.innerHTML = `Around ${esc(focus.n.id)} <span>· paid by ${c.in1}, paid ${c.out1} · one more ring either side</span>`;
-    note.textContent = hidden ? `${fmt(hidden)} accounts with the smallest transfers are not drawn so the rest stay readable. Switch to Whole network to see everything.` : "";
-  } else { pos.clear(); drawnEdges = []; what.textContent = ""; note.textContent = ""; }
-}
-
-/* ------------------------------ legend ------------------------------ */
-$("legend").innerHTML = (D.meta.roleOrder || []).filter(r => D.meta.roleCounts[r])
-  .map(r => `<span title="${esc(ROLE_DEF[r] || "")}"><i class="dot" style="background:${roleCol(r)}"></i>${esc(r.replace(/_/g, " "))} ${fmt(D.meta.roleCounts[r])}</span>`).join("")
+const legendHtml = (D.meta.roleOrder || []).filter(r => D.meta.roleCounts[r])
+  .map(r => `<span title="${esc(ROLE_DEF[r] || "")}"><i class="dot" style="background:${roleCol(r)}"></i>${esc(roleName(r))} ${fmt(D.meta.roleCounts[r])}</span>`).join("")
   + `<span title="An account law enforcement already named"><i class="dot" style="background:transparent;box-shadow:0 0 0 1.5px var(--ring)"></i>known client</span>`;
+$("legend-a").innerHTML = legendHtml; $("legend-f").innerHTML = legendHtml;
 
-/* ------------------------------ left list ------------------------------ */
-let tab = "acc";
-function renderList() {
-  const el = $("list");
-  if (tab === "acc") {
-    el.innerHTML = `<div class="intro">Ranked on evidence, not on how central an account is. The reason is the rule that fired and the numbers it fired on.</div>` +
-      TOP.map(r => `<div class="row" data-gid="${esc(r.gid)}" aria-selected="${focus?.type === "node" && String(focus.n.id) === String(r.gid)}">
-        <div class="n">${esc(r.rank)}</div><div class="h">…${esc(String(r.gid).slice(-7))} ${pill(r.role)}</div>
-        <div class="w">${esc(reasonOf(r))}</div></div>`).join("");
-  } else {
-    el.innerHTML = `<div class="intro">Groups of accounts that only make sense read together. Each carries the one account whose removal breaks most of it.</div>` +
-      FORMS.slice(0, 60).map((f, i) => `<div class="row" data-frm="${i}" aria-selected="${focus?.type === "form" && focus.f === f}">
-        <div class="n">${esc(f.rank)}</div><div class="h">${esc(kindName(f.kind))} <span class="pill" style="background:var(--sunk);color:var(--muted)">${plural(f.n_members, "account", "accounts")}</span></div>
-        <div class="w">${plural(f.n_seeds, "known client", "known clients")} · ${kzt(f.kzt_through)} through it</div></div>`).join("") +
-      (FORMS.length > 60 ? `<div class="intro">${fmt(FORMS.length - 60)} more structures are in out/formations.csv.</div>` : "");
-  }
-}
-/* The rule's own evidence string, with the leading role name removed when the ranking repeats it. */
-const reasonOf = r => String(r.why || "").replace(/^[a-z_]+:\s*/, "");
+/* ------------------------------ 03 one account ------------------------------ */
+const mapA = createMap($("cv-a"), { onLayout: info => {
+  const n = mapA.focus?.n;
+  if (info.mode === "all") { $("what-a").innerHTML = `All ${fmt(D.nodes.length)} accounts <span>· left to right is distance from the known clients · the selection and its transfers are lit</span>`; $("note-a").textContent = ""; }
+  else if (n) { $("what-a").innerHTML = `Around ${esc(n.id)} <span>· paid by ${info.in1}, paid ${info.out1 + info.both}${info.both ? ` (${info.both} of them also paid it, drawn once on the left with arrows both ways)` : ""}</span>`;
+    $("note-a").textContent = info.hidden ? `${fmt(info.hidden)} accounts with the smallest transfers are not drawn so the rest stay readable. Whole network shows everything.` : ""; }
+}});
+$("view-a").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if (!b) return; mapA.view = b.dataset.v; document.querySelectorAll("#view-a button").forEach(x => x.setAttribute("aria-pressed", x === b)); mapA.update(); });
 
-/* ------------------------------ right panel ------------------------------ */
-function renderNode(n) {
+function renderAccount(n) {
   const id = String(n.id), k = KNOW.get(id), rk = RANK.get(id);
   const forms = (FORMS_OF.get(id) || []).map(f => FORM_BY_ID.get(f)).filter(Boolean).sort((a, b) => a.rank - b.rank);
-  $("panel").innerHTML = `
-    <div class="k">This account</div><div class="gid">${esc(id)}${n.seed ? ` <span class="pill" style="background:var(--sunk);color:var(--muted)">known client</span>` : ""}</div>
-    <p class="sentence">Received <b>${kzt(n.inKzt)}</b> from ${plural(n.inDeg, "account", "accounts")} and sent <b>${kzt(n.outKzt)}</b> to ${plural(n.outDeg, "account", "accounts")} in the window.</p>
+  $("panel-a").innerHTML = `
+    <div class="k">This account</div><div class="gid">${esc(id)}</div>${n.seed ? `<div style="margin-top:.3rem">${pill("known client")}</div>` : ""}
+    <p class="sentence">Received <b>${kzt(n.inKzt)}</b> from ${plural(n.inDeg, "account", "accounts")} and sent <b>${kzt(n.outKzt)}</b> to ${plural(n.outDeg, "account", "accounts")} in July.</p>
     <div class="k">Assessed as</div>
-    <div>${pill(n.role)} <span style="color:var(--muted);font-size:.85rem">rule confidence ${n.roleScore.toFixed(2)}</span></div>
-    <p class="sentence" style="margin:.4rem 0 0">${esc(ROLE_DEF[n.role] || "")}</p>
+    <div>${pill(n.role)} <span style="color:var(--muted);font-size:.85rem;margin-left:.3rem">rule confidence ${n.roleScore.toFixed(2)}</span></div>
+    <p class="sentence">${esc(ROLE_DEF[n.role] || "")}</p>
     <div class="ev">The rule fired on: <code>${esc(n.evidence)}</code></div>
     ${atEdge(n) ? `<div class="caveat">This account sits at hop ${maxHop} with nothing recorded going out. The crawl stopped here, so whether the money stopped here is not something this data can say.</div>` : ""}
     <div class="k">Investigation priority</div>
@@ -483,50 +474,54 @@ function renderNode(n) {
     <div class="k">Position</div>
     <div class="stat"><span>hops from a known client</span><b>${n.hop}${n.seed ? " (known)" : ""}</b></div>
     <div class="stat"><span>group</span><b>${n.cluster}</b></div>
-    ${k ? `<div class="k">What we know of it</div>
-      <div class="stat"><span>${esc(String(k.knowledge_state).replace(/_/g, " "))}</span><b>confidence ${(+k.confidence).toFixed(2)}</b></div>
-      <p class="empty" style="margin:.2rem 0 0">${esc(k.limitation || "")}</p>` : ""}
+    ${k ? `<div class="k">What we know of it</div><div class="stat"><span>${esc(String(k.knowledge_state).replace(/_/g, " "))}</span><b>confidence ${(+k.confidence).toFixed(2)}</b></div><p class="empty" style="margin:.2rem 0 0">${esc(k.limitation || "")}</p>` : ""}
     <div class="k">Structures it belongs to</div>
-    ${forms.length ? forms.slice(0, 8).map(f => `<span class="chip" data-frmid="${esc(f.formation_id)}">#${esc(f.rank)} ${esc(kindName(f.kind))}</span>`).join("") + (forms.length > 8 ? `<span class="empty"> and ${forms.length - 8} more</span>` : "")
-                   : `<p class="empty">None. It is not part of any funnel, chain, loop, fan-out or bridge.</p>`}`;
+    ${forms.length ? forms.slice(0, 8).map(f => `<a class="chip" href="#structures/${esc(f.rank)}">#${esc(f.rank)} ${esc(kindName(f.kind))}</a>`).join("") + (forms.length > 8 ? `<span class="empty"> and ${forms.length - 8} more</span>` : "") : `<p class="empty">None. It is not part of any funnel, chain, loop, fan-out or bridge.</p>`}`;
+}
+function showAccount(id) {
+  const n = byId.get(String(id).trim());
+  if (!n) { $("panel-a").innerHTML = `<p class="empty">No account with the id ${esc(id)} in this extract.</p>`; mapA.focus = null; mapA.update(); return; }
+  $("q").value = n.id; mapA.focus = { type: "node", n }; mapA.breakId = null; renderAccount(n); mapA.update();
 }
 
-function renderForm(f) {
-  const bp = f.breaking_point_gid ? String(f.breaking_point_gid) : null;
-  const unit = { articulation: "accounts cut off", dominator: "accounts cut off", flow: "KZT stopped" }[f.breaking_point_method] || "";
+/* ------------------------------ 04 structures ------------------------------ */
+const mapF = createMap($("cv-f"), { onLayout: info => { const f = mapF.focus?.f; if (f) $("what-f").innerHTML = `${esc(kindName(f.kind))} #${esc(f.rank)} <span>· ${plural(info.count, "account", "accounts")} across ${plural(info.hops.length, "hop", "hops")} · ${esc(KIND_DEF[f.kind] || "")}</span>`; } });
+function renderFormList() {
+  $("list-f").innerHTML = FORMS.slice(0, 80).map((f, i) => `<div class="row" data-frm="${i}" aria-selected="${mapF.focus?.f === f}">
+      <div class="n">${esc(f.rank)}</div><div class="h">${esc(kindName(f.kind))} <span class="pill" style="background:var(--sunk);color:var(--muted)">${plural(f.n_members, "account", "accounts")}</span></div>
+      <div class="w">${plural(f.n_seeds, "known client", "known clients")} · ${kzt(f.kzt_through)} through it</div></div>`).join("")
+    + (FORMS.length > 80 ? `<div class="row"><div class="n"></div><div class="w">${fmt(FORMS.length - 80)} more are in out/formations.csv.</div></div>` : "");
+}
+function showForm(f) {
+  if (!f) return;
+  mapF.focus = { type: "form", f }; mapF.breakId = f.breaking_point_gid ? String(f.breaking_point_gid) : null; mapF.update(); renderFormList();
+  const bp = mapF.breakId, unit = { articulation: "accounts cut off", dominator: "accounts cut off", flow: "KZT stopped" }[f.breaking_point_method] || "";
   const mem = MEMBERS.get(String(f.formation_id)) || new Set();
-  $("panel").innerHTML = `
-    <div class="k">This structure</div><div class="gid">${esc(kindName(f.kind))} #${esc(f.rank)} <span style="color:var(--muted);font-weight:400;font-size:.9rem">of ${FORMS.length}</span></div>
-    <p class="sentence">${esc((KIND_DEF[f.kind] || "").replace(/^./, c => c.toUpperCase()))}. ${plural(f.n_members, "account", "accounts")}, ${plural(f.n_seeds, "of them a known client", "of them known clients")}, <b>${kzt(f.kzt_through)}</b> moving through it.</p>
+  $("panel-f").innerHTML = `
+    <div class="k">This structure</div><div class="gid">${esc(kindName(f.kind))} #${esc(f.rank)} <span style="color:var(--muted);font-weight:400;font-size:.9rem;font-family:var(--body)">of ${FORMS.length}</span></div>
+    <p class="sentence">${esc((KIND_DEF[f.kind] || "").replace(/^./, c => c.toUpperCase()))}. ${plural(f.n_members, "account", "accounts")}, ${f.n_seeds} of them known, <b>${kzt(f.kzt_through)}</b> moving through it.</p>
     <div class="k">Breaking point</div>
-    ${bp ? `<div class="gid" style="color:var(--amber);cursor:pointer" data-gid="${esc(bp)}">${esc(bp)}</div>
-            <p class="empty" style="margin:.2rem 0 0">Remove this one account and ${esc(fmt(f.breaking_point_effect))} ${esc(unit)}. Found by ${esc(f.breaking_point_method)}. Marked in amber on the map.</p>`
-         : `<p class="empty">Not identified for this structure.</p>`}
+    ${bp ? `<a class="gid" style="color:var(--amber)" href="#account/${esc(bp)}">${esc(bp)}</a><p class="empty" style="margin:.2rem 0 0">Remove this one account and ${esc(fmt(f.breaking_point_effect))} ${esc(unit)}. Found by ${esc(f.breaking_point_method)}. Marked in amber on the map.</p>` : `<p class="empty">Not identified for this structure.</p>`}
     ${f.hypothesis ? `<div class="k">Hypothesis to test</div><p class="sentence">${esc(f.hypothesis)}</p>` : ""}
     ${f.evidence ? `<div class="ev">Arithmetic behind it: <code>${esc(f.evidence)}</code></div>` : ""}
     <div class="k">Members</div>
-    <div>${[...mem].slice(0, 30).map(g => `<span class="chip" data-gid="${esc(g)}" style="color:${roleCol(byId.get(g)?.role)}">…${esc(g.slice(-7))}</span>`).join("")}${mem.size > 30 ? `<span class="empty"> and ${mem.size - 30} more</span>` : ""}</div>`;
+    <div>${[...mem].slice(0, 30).map(g => `<a class="chip" href="#account/${esc(g)}" style="color:${roleCol(byId.get(g)?.role)}">${esc(short(g))}</a>`).join("")}${mem.size > 30 ? `<span class="empty"> and ${mem.size - 30} more</span>` : ""}</div>`;
+  const row = document.querySelector(`.row[data-frm="${FORMS.indexOf(f)}"]`); row?.scrollIntoView({ block: "nearest" });
 }
+$("list-f").addEventListener("click", e => { const r = e.target.closest("[data-frm]"); if (r) location.hash = "#structures/" + FORMS[+r.dataset.frm].rank; });
 
-/* ------------------------------ selection ------------------------------ */
-function selectNode(id, fromSearch) {
-  const n = byId.get(String(id).trim());
-  if (!n) { if (fromSearch) $("panel").innerHTML = `<p class="empty">No account with that id in this extract.</p>`; return; }
-  focus = { type: "node", n }; breakId = null;
-  if (!fromSearch) $("q").value = n.id;
-  renderNode(n); renderList(); relayout(); draw();
-}
-function selectForm(f) {
-  if (!f) return;
-  focus = { type: "form", f }; breakId = f.breaking_point_gid ? String(f.breaking_point_gid) : null;
-  $("q").value = "";
-  renderForm(f); renderList(); relayout(); draw();
-}
+/* ------------------------------ 02 review list ------------------------------ */
+$("p-review").innerHTML = `
+  <div class="ph"><i>02</i><h2>Who to review first</h2></div>
+  <p class="lede">The ${TOP.length} accounts the evidence puts first, out of ${fmt(D.nodes.length)}. Ranked on the rules that fired and the numbers they fired on, not on how central an account is. <b>Click a row</b> to open the account.</p>
+  <table><thead><tr><th class="right">#</th><th>account</th><th>assessed as</th><th>priority</th><th>the reason, in the rule's own numbers</th></tr></thead><tbody>
+  ${TOP.map(r => `<tr data-gid="${esc(r.gid)}"><td class="right rank">${esc(r.rank)}</td><td class="mono">${esc(r.gid)}</td><td>${pill(r.role)}</td>
+    <td class="num"><i class="bar" style="width:${Math.round(+r.priority_score * 120)}px"></i>${(+r.priority_score).toFixed(3)}</td><td class="wrap">${esc(reasonOf(r))}</td></tr>`).join("")}
+  </tbody></table>`;
 
-/* ------------------------------ where the data runs out ------------------------------ */
-function renderGaps() {
-  const cs = D.completeness_summary || {}, g = D.integrity || {};
-  const pct = v => (v * 100).toFixed(0) + "%";
+/* ------------------------------ 07 limits ------------------------------ */
+{
+  const cs = D.completeness_summary || {}, g = D.integrity || {}, pct = v => (v * 100).toFixed(0) + "%";
   const tiles = [
     [fmt(g.dead_ends_truncated_depth4 ?? 0), `accounts at hop ${maxHop} with nothing going out. The crawl stopped, not the money.`],
     [fmt(g.dead_ends_genuine ?? 0), "dead ends the crawl did follow to their end"],
@@ -536,70 +531,81 @@ function renderGaps() {
     cs.state_turnover_share_truncated_at_depth != null ? [pct(cs.state_turnover_share_truncated_at_depth), "of turnover ends at the crawl boundary"] : null,
     cs.state_count_isolated != null ? [fmt(cs.state_count_isolated), "isolated accounts, no transfer either way"] : null,
   ].filter(Boolean);
-  const nd = (D.next_data_request || []).slice().sort((a, b) => a.rank - b.rank);
-  const dem = D.demoted || [], res = D.resilience || [];
-  $("gaps").innerHTML = `
-    <h2>Where the data runs out</h2>
-    <p class="lede">The crawl followed money <em>outwards</em> from the ${fmt(D.meta.seeds)} known clients for four hops. Money arriving into them was never followed, so anyone directing them from above is outside this extract by construction. These are the measured limits, and what to ask for next.</p>
+  const nd = (D.next_data_request || []).slice().sort((a, b) => a.rank - b.rank), dem = D.demoted || [], res = D.resilience || [];
+  $("p-limits").innerHTML = `
+    <div class="ph"><i>07</i><h2>Where the data runs out</h2></div>
+    <p class="lede">The crawl followed money <b>outwards</b> from the ${fmt(D.meta.seeds)} known clients for four hops. Money arriving into them was never followed, so anyone directing them from above is outside this extract by construction. These are the measured limits, and what to ask for next.</p>
     <div class="tiles">${tiles.map(([v, l]) => `<div class="tile"><b>${v}</b><span>${esc(l)}</span></div>`).join("")}</div>
     <div class="cols">
       <div><h3>What to ask the data owner for next</h3><p class="note">Ranked by what each request would resolve.</p>
-        ${nd.length ? nd.map(r => `<div class="ask"><div class="h"><i>${esc(r.rank)}</i>${esc(r.request)}</div><div class="w">${esc(r.why)}</div>
-          <div class="f"><b>${fmt(r.resolves_nodes)}</b> accounts resolved · <b>${kzt(r.illuminates_kzt)}</b> lit up</div></div>`).join("") : `<p class="empty">Not generated in this run.</p>`}
+        ${nd.length ? nd.map(r => `<div class="ask"><div class="h"><i>${esc(r.rank)}</i>${esc(r.request)}</div><div class="w">${esc(r.why)}</div><div class="f"><b>${fmt(r.resolves_nodes)}</b> accounts resolved · <b>${kzt(r.illuminates_kzt)}</b> lit up</div></div>`).join("") : `<p class="empty">Not generated in this run.</p>`}
       </div>
       <div><h3>Where a plain centrality ranking would mislead</h3><p class="note">Centrality promotes accounts that flow passes through. It cannot tell an account collecting from many payers apart from a business paying many suppliers. These accounts moved most between the two rankings.</p>
-        ${dem.length ? `<table><thead><tr><th>account</th><th class="num">by centrality</th><th class="num">by evidence</th><th>assessed as</th><th>the numbers</th></tr></thead><tbody>${
-          dem.map(r => `<tr data-gid="${esc(r.gid)}"><td>…${esc(String(r.gid).slice(-7))}</td><td class="num">#${esc(r.rank_pagerank)}</td><td class="num">#${esc(r.rank_priority)}</td><td>${pill(r.role)}</td><td class="wrap">${esc(r.evidence)}</td></tr>`).join("")}</tbody></table>` : `<p class="empty">Not generated in this run.</p>`}
+        ${dem.length ? `<table><thead><tr><th>account</th><th class="right">by centrality</th><th class="right">by evidence</th><th>assessed as</th><th>the numbers</th></tr></thead><tbody>${dem.map(r => `<tr data-gid="${esc(r.gid)}"><td class="mono">${esc(short(r.gid))}</td><td class="right num">#${esc(r.rank_pagerank)}</td><td class="right num">#${esc(r.rank_priority)}</td><td>${pill(r.role)}</td><td class="wrap">${esc(r.evidence)}</td></tr>`).join("")}</tbody></table>` : `<p class="empty">Not generated in this run.</p>`}
         <h3 style="margin-top:1.4rem">If the top-ranked accounts were removed</h3><p class="note">A ranking is only worth having if acting on it changes the network.</p>
-        ${res.length ? `<table><thead><tr><th class="num">removed</th><th class="num">largest group left</th><th class="num">separate pieces</th><th class="num">still reachable from known clients</th></tr></thead><tbody>${
-          res.map(r => `<tr><td class="num">${fmt(r.removed)}</td><td class="num">${fmt(r.largest_component)}</td><td class="num">${fmt(r.n_components)}</td><td class="num">${fmt(r.nodes_reachable_from_seeds)}</td></tr>`).join("")}</tbody></table>` : `<p class="empty">Not generated in this run.</p>`}
+        ${res.length ? `<table><thead><tr><th class="right">removed</th><th class="right">largest group left</th><th class="right">separate pieces</th><th class="right">still reachable from known clients</th></tr></thead><tbody>${res.map(r => `<tr><td class="right num">${fmt(r.removed)}</td><td class="right num">${fmt(r.largest_component)}</td><td class="right num">${fmt(r.n_components)}</td><td class="right num">${fmt(r.nodes_reachable_from_seeds)}</td></tr>`).join("")}</tbody></table>` : `<p class="empty">Not generated in this run.</p>`}
       </div>
     </div>`;
 }
-renderGaps();
-$("gapsBtn").onclick = () => {
-  const on = !$("gaps").hasAttribute("data-on");
-  $("gaps").toggleAttribute("data-on", on); $("gapsBtn").setAttribute("aria-pressed", on);
-  $("gapsBtn").textContent = on ? "Back to the map" : "Where the data runs out";
-};
 
-/* ------------------------------ interaction ------------------------------ */
-function pick(mx, my) {
-  let best = null, bd = 110;
-  for (const [id, p] of pos) { const d = (p.x - mx) ** 2 + (p.y - my) ** 2; if (d < bd) { bd = d; best = id; } }
-  return best;
+/* ------------------------------ 05, 06 modules ------------------------------ */
+let replayFacts = null, echoFacts = null;
+if (replayMod?.mountReplay) { try { replayMod.mountReplay($("mod-replay"), D, api); replayFacts = replayMod.replayFacts?.(D) ?? null; } catch (e) { console.error(e); $("mod-replay").innerHTML = `<p class="empty">The replay could not start: ${esc(e.message)}</p>`; } }
+else $("mod-replay").innerHTML = `<p class="empty">The replay module (web/replay.js) is not present in this build.</p>`;
+if (echoesMod?.mountEchoes) { try { echoesMod.mountEchoes($("mod-echoes"), D, api); echoFacts = echoesMod.echoFacts?.(D) ?? null; } catch (e) { console.error(e); $("mod-echoes").innerHTML = `<p class="empty">The echoes section could not start: ${esc(e.message)}</p>`; } }
+else $("mod-echoes").innerHTML = `<p class="empty">The echoes module (web/echoes.js) is not present in this build.</p>`;
+
+/* ------------------------------ 01 start ------------------------------ */
+{
+  const g = D.integrity || {};
+  const lead = TOP.slice(0, 3), forms = FORMS.slice(0, 3);
+  $("p-start").innerHTML = `
+    <div class="ph"><i>01</i><h2>The case in one screen</h2></div>
+    <p class="lede">Law enforcement named <b>${D.meta.seeds} accounts</b> at the bottom of a chain. A crawl followed their outbound transfers for four hops through July 2026. This tool reads what the crawl brought back and answers one question: <b>which of these accounts should an analyst look at first, and why.</b></p>
+    <div class="ledger">
+      <div><b>${fmt(D.meta.seeds)}</b><span>known clients, where the crawl began</span></div>
+      <div><b>${fmt(D.meta.nodes)}</b><span>accounts reached in four hops</span></div>
+      <div><b>${fmt(D.meta.edges)}</b><span>transfer relationships, ${kzt(D.meta.turnover)}</span></div>
+      <div class="amber"><b>${fmt(TOP.length)}</b><span>accounts to review first</span></div>
+      <div><b>${fmt(FORMS.length)}</b><span>structures that only make sense read together</span></div>
+      <div><b>${fmt(abstained)}</b><span>accounts not judged, because the data does not support a judgement</span></div>
+    </div>
+    <div class="grid2">
+      <div>
+        <h3 class="sec">Start with these accounts</h3>
+        ${lead.map(r => `<a class="lead" href="#account/${esc(r.gid)}" style="margin-bottom:.6rem"><div class="r">RANK ${esc(r.rank)} · PRIORITY ${(+r.priority_score).toFixed(3)}</div><div class="g">${esc(r.gid)}</div><div class="t">${pill(r.role)}</div><div class="w">${esc(reasonOf(r))}</div></a>`).join("")}
+        <a class="go" href="#review">All ${TOP.length} ranked accounts</a>
+      </div>
+      <div>
+        <h3 class="sec">Start with these structures</h3>
+        ${forms.map(f => `<a class="lead" href="#structures/${esc(f.rank)}" style="margin-bottom:.6rem"><div class="r">RANK ${esc(f.rank)} · ${esc(kindName(f.kind).toUpperCase())}</div><div class="g">${plural(f.n_members, "account", "accounts")} · ${kzt(f.kzt_through)}</div><div class="w">${esc(f.hypothesis || KIND_DEF[f.kind] || "")}</div></a>`).join("")}
+        <a class="go" href="#structures">All ${FORMS.length} structures</a>
+        <hr class="rule">
+        <h3 class="sec">Also in this file</h3>
+        ${replayFacts?.busiestDay ? `<div class="fact"><b>${esc(dateWord(replayFacts.busiestDay.date))}</b><span>the busiest day: ${kzt(replayFacts.busiestDay.kzt)} in ${plural(replayFacts.busiestDay.n_tx, "transfer", "transfers")}. <a class="go" href="#replay">Replay the month</a></span></div>` : ""}
+        ${echoFacts ? `<div class="fact"><b>${fmt(echoFacts.total)}</b><span>amount echoes: the same sum in and out within a day, or the same sum to several receivers. <a class="go" href="#echoes">See them</a></span></div>` : ""}
+        <div class="fact"><b>${fmt(g.dead_ends_truncated_depth4 ?? 0)}</b><span>accounts where the crawl stopped rather than the money. <a class="go" href="#limits">Where the data runs out</a></span></div>
+      </div>
+    </div>`;
 }
-cv.addEventListener("mousemove", e => {
-  const r = cv.getBoundingClientRect(), h = pick(e.clientX - r.left, e.clientY - r.top);
-  if (h !== hovered) { hovered = h; cv.style.cursor = h ? "pointer" : "default"; draw(); }
-});
-cv.addEventListener("mouseleave", () => { hovered = null; draw(); });
-cv.addEventListener("click", () => { if (hovered) selectNode(hovered); });
-$("q").addEventListener("input", e => { const v = e.target.value.trim(); if (v.length === 18) selectNode(v, true); });
-$("q").addEventListener("change", e => { const v = e.target.value.trim(); if (v) selectNode(v, true); });
-$("view").addEventListener("click", e => {
-  const b = e.target.closest("button[data-v]"); if (!b) return;
-  view = b.dataset.v;
-  document.querySelectorAll("#view button").forEach(x => x.setAttribute("aria-pressed", x === b));
-  relayout(); draw();
-});
-document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
-  tab = t.dataset.t;
-  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t));
-  renderList();
-});
-document.addEventListener("click", e => {
-  const fr = e.target.closest("[data-frm]"); if (fr) { selectForm(FORMS[+fr.dataset.frm]); return; }
-  const fi = e.target.closest("[data-frmid]"); if (fi) { selectForm(FORM_BY_ID.get(fi.dataset.frmid)); return; }
-  const g = e.target.closest("[data-gid]");
-  if (g && g.dataset.gid) {
-    if ($("gaps").hasAttribute("data-on")) $("gapsBtn").click();
-    selectNode(g.dataset.gid);
-  }
-});
 
-/* The screen opens on an answer: the account ranked first. */
-renderList();
-if (TOP.length) selectNode(TOP[0].gid); else resize();
+/* ------------------------------ routing ------------------------------ */
+const PAGES = ["start", "review", "account", "structures", "replay", "echoes", "limits"];
+function go(page, arg) { location.hash = "#" + page + (arg ? "/" + arg : ""); }
+function route() {
+  const [page, arg] = location.hash.replace(/^#/, "").split("/");
+  const p = PAGES.includes(page) ? page : "start";
+  PAGES.forEach(x => $("p-" + x).toggleAttribute("data-on", x === p));
+  document.querySelectorAll("#rail a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + p));
+  if (p === "account") showAccount(arg || mapA.focus?.n?.id || TOP[0]?.gid);
+  if (p === "structures") showForm(arg ? FORMS.find(f => String(f.rank) === arg) : (mapF.focus?.f || FORMS[0]));
+  window.scrollTo(0, 0);
+}
+addEventListener("hashchange", route);
+document.addEventListener("click", e => { const tr = e.target.closest("tr[data-gid]"); if (tr) go("account", tr.dataset.gid); });
+$("q").addEventListener("input", e => { const v = e.target.value.trim(); if (v.length === 18) go("account", v); });
+$("q").addEventListener("change", e => { const v = e.target.value.trim(); if (v) go("account", v); });
+renderFormList();
+route();
 </script>
 </html>

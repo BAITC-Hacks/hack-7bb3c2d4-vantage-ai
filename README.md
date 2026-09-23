@@ -20,7 +20,7 @@ pip install -r requirements.txt
 python3 run.py
 ```
 
-2.4 seconds. Thirteen files in `out/`. No keys, no network, no database, no build step.
+2.4 seconds. Fifteen files in `out/`. No keys, no network, no database, no build step.
 All five dependencies are pinned to exact versions, because the reproducibility claim below is
 byte-level and one of the pins is load-bearing.
 
@@ -56,7 +56,7 @@ an outbound-only crawl.
 | Search by account id | `web/index.html` | Type or pick any gid, get its plain-language assessment, the rule and the numbers behind it, its money in and out, its hop, its group, its priority, its knowledge state, and the accounts around it on the map |
 | No black-box roles | `src/moneygraph/roles.py` | Every role is a named rule with a numeric threshold. Zero model calls anywhere in the pipeline |
 | No hardcoded account lists | `src/`, `web/`, `tools/` | Zero account id literals in any `.py` or `.html` file. Nothing is tuned to a specific account |
-| No external enrichment | whole repo | Three parquet files in, thirteen files out. The pipeline imports no network library and makes no request |
+| No external enrichment | whole repo | Three parquet files in, fifteen files out. The pipeline imports no network library and makes no request |
 | Runs inside 5 minutes | `run.py` | 2.4 seconds, measured, from a clean clone with a fresh virtual environment |
 | Findings as hypotheses | every generated string | No output asserts wrongdoing. Wording is "the figures suggest", "worth checking as", "consistent with" |
 
@@ -262,41 +262,56 @@ a caveat in a footnote.
 
 `python3 run.py --serve`, then `http://localhost:8000/web/`
 
-One HTML file, no framework, no build step. It loads exactly one thing, `out/graph.json`, produced by
-the run beside it, and nothing else: no CDN, no web font, no external image, no analytics. It must be
-served over HTTP rather than opened from disk, because a browser refuses a `fetch` from a `file://`
-page, and the built-in server mounts only `/web/` and `/out/` rather than the repository root.
+One HTML page and two ES modules (`web/replay.js`, `web/echoes.js`), no framework, no build step. It
+loads exactly one thing, `out/graph.json`, produced by the run beside it, and nothing else: no CDN, no
+web font, no external image, no analytics. It must be served over HTTP rather than opened from disk,
+because a browser refuses a `fetch` from a `file://` page, and the built-in server mounts only
+`/web/` and `/out/` rather than the repository root.
 
-It opens on the answer to the case's question: which of these 2,248 accounts to look at first, and
-why. The header carries a summary strip, 81 known clients, 2,248 accounts reached, 25 to review first,
-653 structures found, 558 not judged, and a button, "Where the data runs out", that opens a
-full-width panel.
+It is laid out as a case file: seven numbered sections in a rail on the left, and one search box in
+the top bar that takes an account id from anywhere.
 
-Three panes. On the left, a search box and two tabs: "Accounts to review", the ranked list
-from `top_nodes.csv` with rank, role and a one-line reason, and Structures, the formations from
-`formations.csv` with kind, members, known clients and KZT through. Clicking a row selects it. In the
-centre, the map. Its default mode, "Around this account", puts the selected account in the middle,
-the accounts that paid it on the left, the accounts it paid on the right, one more ring either side,
-arrows pointing the way the money moved, line width by KZT, nodes coloured by role, known clients
-ringed. A toggle, "Whole network", lays all 2,248 out by hop, known clients on the left and hop 4 on
-the right, with the selection highlighted. Selecting a structure shows its members and the edges
-between them, with its breaking point marked in amber. Hovering a node shows its id and role;
-clicking selects it. A legend lists the roles with counts, and hovering a role shows its plain
-definition. On the right, "This account": the full gid, a sentence of the form "Received X KZT from
-N accounts and sent Y KZT to M accounts", the assessed role with its plain definition, the rule's own
-evidence string and confidence, the investigation priority score with its rank when the account is in
-the top list, hop from a known client, group id, the knowledge state and confidence from
-`completeness.csv` with its limitation sentence, the structures the account belongs to, each
-clickable, and a caveat when the account sits at hop 4 with nothing going out.
+| | Section | What it holds |
+|---|---|---|
+| 01 | The case in one screen | The six figures of the extract, the three accounts and three structures to start with, the busiest day, the echo count, the crawl boundary count. Everything links into its section |
+| 02 | Who to review first | The 25 ranked accounts from `top_nodes.csv`, each with its role and the rule's own numbers |
+| 03 | One account | The map around the selected account: who paid it on the left, who it paid on the right, one more ring either side, arrows the way the money moved, width by KZT. A toggle shows the whole network by hop with the selection lit. The panel beside it reads as sentences: money in and out, the role with its plain definition, the evidence string, priority with rank, hop, group, knowledge state and limitation from `completeness.csv`, and the structures it belongs to |
+| 04 | Structures | The 653 formations ranked, each drawn on its own map with the breaking point in amber, with hypothesis, arithmetic and members |
+| 05 | Replay the month | July day by day on the hop layout: play, scrub, a 31-bar strip of daily KZT, a fading trail of the previous days, and the day's KZT, transfers and active accounts |
+| 06 | Amount echoes | The 203 echoes from `echoes.csv`, each as an in → account → out diagram with the amounts on the lines, filterable by kind, sortable by score, amount or date |
+| 07 | Where the data runs out | The boundary figures, the ranked next data requests, where a plain centrality ranking would mislead, and the removal test |
 
-The search box autocompletes on the id digits. Typing a full id or picking a suggestion selects the
-account and the map re-centres on it. "Where the data runs out" holds the completeness summary
-figures, the ranked next data requests with what each would resolve, the table of accounts where a
-plain centrality ranking and the evidence ranking disagree, and the removal test, what happens to the
-network if the top-ranked accounts are removed.
+Hovering a role in any legend shows its definition in one sentence. Account ids are handled as
+strings throughout, because an 18 digit id exceeds `Number.MAX_SAFE_INTEGER` and two different
+accounts compare as equal the moment one becomes a number.
 
-Account ids are handled as strings throughout, because an 18 digit id exceeds
-`Number.MAX_SAFE_INTEGER` and two different accounts compare as equal the moment one becomes a number.
+---
+
+## Amount echoes and the month replay
+
+The edge list is the month folded flat. `timeline.csv` unfolds it: one row per day, payer and
+receiver, 4,286 rows over the 31 days of July 2026, every day carrying at least one transfer, and the
+total matching the edge list to the KZT, which `run.py` asserts. The same rows go into `graph.json`
+as `days`, one entry per calendar day with its total, its transfer count, the number of accounts
+active that day and the transfers themselves, so the screen can play the month forward rather than
+show it as one picture.
+
+`echoes.csv` reads the individual transfers, not the daily aggregate, for money that leaves an
+account in the shape it arrived. A **relay** is one transfer of X received on a day and one transfer
+within 2% of X sent to a single account the same day or the next. A **split** is one transfer of X
+received and two or more transfers sent over the same two days whose sum is within 2% of X, checked
+over at most six outgoing transfers per day. A **fan split** is the same exact amount sent to three or
+more distinct receivers on one day. The tolerance is `ECHO_TOLERANCE = 0.02` in `echoes.py`, beside
+the other cutoffs. A transfer takes part in at most one relay or split, the largest incoming amount
+claiming its transfers first, so the same money is never counted twice.
+
+The run finds 203 echoes on 114 accounts: 135 relays, 61 splits and 7 fan splits, 127 of them exact
+to the KZT and 76 within the 2% band, 118 completed the same day and 85 the next. Together they carry
+15,222,449 KZT, 4.16% of turnover. The largest is a relay of 652,000 KZT received and returned to
+the payer on 2026-07-22. Every row is a hypothesis for an analyst, with the figures it rests on in its
+evidence sentence: a relay of 23,000 KZT, the median, can be rent passed on, and a fan split of
+30,000 KZT to three accounts can be a payday. Each echo is scored 0..1 by its size against the
+largest echo and by how exactly the amount was matched, and ranked by that score.
 
 ---
 
@@ -325,10 +340,12 @@ data/*.parquet
   completeness.py  knowledge state and confidence per account, and the next data request
   priority.py      the weighted ranking, weights in one dict at the top of the file
   exhibits.py      where PageRank and the rule bank disagree
+  timeline.py      the month cut by day, one row per (date, payer, receiver), empty days kept
+  echoes.py        relay, split and fan split amount echoes from the dated transfers, 2% band
       |
       v
   viewdata.py      graph.json for the review screen, every gid serialised as a string
-  run.py           writes thirteen files and asserts on them before exiting
+  run.py           writes fifteen files and asserts on them before exiting
 ```
 
 Python 3.11. pandas, pyarrow, networkx, numpy, scipy, all pinned exactly. Nothing else on the judged
@@ -352,14 +369,16 @@ its output is committed and a judge never needs to regenerate it.
 | `cycles.csv` | 1,541 | Closed loops up to six hops |
 | `resilience.csv` | 6 | What happens to the network as ranked accounts are removed |
 | `pagerank_vs_evidence.csv` | 15 | Where centrality and the rule bank disagree |
-| `graph.json` | 3,117,945 bytes | Everything the review screen reads |
+| `timeline.csv` | 4,286 | Transfers per day, payer and receiver, 253,388 bytes; the month replay |
+| `echoes.csv` | 203 | Relay, split and fan split amount echoes, 49,565 bytes; each a hypothesis |
+| `graph.json` | 3,555,115 bytes | Everything the review screen reads |
 | `integrity.json` | | The integrity report, machine readable |
 
 ---
 
 ## Verification
 
-**Determinism.** Three separate processes into three separate directories, all thirteen files byte
+**Determinism.** Three separate processes into three separate directories, all fifteen files byte
 identical by md5, and identical again to the copies committed here and to a run from a fresh virtual
 environment. This is not free. `networkx.hits` draws its ARPACK starting vector from operating system
 entropy, so `nodes_roles.csv` had a different hash on every run until an explicit uniform `nstart` was
@@ -368,7 +387,7 @@ fix depends on specific solver behaviour, all five dependencies are pinned to ex
 than floors.
 
 **Clean clone.** The repo copied to an empty directory excluding `__pycache__`, a fresh virtual
-environment, `pip install -r requirements.txt`, then `python3 run.py`. Thirteen files, 2.3 seconds,
+environment, `pip install -r requirements.txt`, then `python3 run.py`. Fifteen files, 2.3 seconds,
 checksums matching.
 
 **Assertions, in `run.py`.** Exactly 2,248 role rows. Non-empty evidence on every one. At least 20 top

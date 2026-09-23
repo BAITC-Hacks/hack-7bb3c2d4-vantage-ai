@@ -34,6 +34,11 @@ ROLE_ORDER = ["consolidator", "coordinator", "transit", "distributor",
 # every one of these has to leave as a string.
 EXTRA_GID_COLUMNS = ("breaking_point_gid",)
 
+# Extras that arrive already JSON-shaped, with nested lists and every client id a string
+# (timeline.days and echoes.records). Rebuilding them as a frame would flatten nothing
+# and stringify nothing, so they are cast to plain Python types and passed through.
+PASSTHROUGH_EXTRAS = ("days", "echoes")
+
 
 def _stringify_gids(df: pd.DataFrame, extra: tuple[str, ...] = ()) -> pd.DataFrame:
     """Client ids are 18 digits. JavaScript parses those as floats and loses the last
@@ -141,7 +146,8 @@ def write(d: Dataset, feats: pd.DataFrame, top: pd.DataFrame,
         "node_completeness": _records(completeness),
         "next_data_request": _records(next_data_request),
         "completeness_summary": _pyify(completeness_summary or {}),
-        **{k: (_records(pd.DataFrame(v))
+        **{k: (_pyify(v) if k in PASSTHROUGH_EXTRAS else
+               _records(pd.DataFrame(v))
                if isinstance(v, list) and v and isinstance(v[0], dict) else _pyify(v))
            for k, v in extras.items()},
     }

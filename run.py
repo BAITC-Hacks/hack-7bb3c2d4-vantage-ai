@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from moneygraph import (dataio, features, roles, clusters, priority,  # noqa: E402
                         flows, hypotheses, exhibits, viewdata,
-                        formations, completeness)
+                        formations, completeness, timeline, echoes)
 
 REQUIRED_NODE_COLUMNS = ["gid", "role", "role_score", "cluster_id", "priority_score", "evidence"]
 
@@ -67,6 +67,11 @@ def main() -> int:
     lead = int(top.iloc[0].gid)
     lead_chains = flows.chains_from_seeds(d, lead)
 
+    # The month as days, and the transfers that leave an account in the shape they arrived.
+    # Both read the dated transactions rather than the monthly edge list.
+    tl = timeline.build(d)
+    echoes_df = echoes.build(d, tl)
+
     # feats carries the role, the community and the priority score by this point, so it is
     # the roles frame and the features frame both. Formations need the communities, which
     # clusters.assign wrote; completeness needs the priority score, which priority.rank did.
@@ -90,6 +95,8 @@ def main() -> int:
     membership_df.to_csv(out_dir / "formation_members.csv", index=False)
     completeness_df.to_csv(out_dir / "completeness.csv", index=False)
     next_request_df.to_csv(out_dir / "next_data_request.csv", index=False)
+    tl.to_csv(out_dir / "timeline.csv", index=False)
+    echoes_df.to_csv(out_dir / "echoes.csv", index=False)
 
     viewdata.write(d, feats, top, cluster_table, {
         "resilience": resil.to_dict(orient="records"),
@@ -99,6 +106,9 @@ def main() -> int:
         # Strings, not integers: an 18-digit id loses its last digits in JavaScript.
         "leadChains": [[str(x) for x in p] for p in lead_chains],
         "integrity": report,
+        # Both carry nested lists and stringify their own ids; viewdata passes them through.
+        "days": timeline.days(tl),
+        "echoes": echoes.records(echoes_df, tl),
     }, out_dir,
         formations=formations_df,
         membership=membership_df,
@@ -150,6 +160,18 @@ def main() -> int:
     assert completeness_df.limitation.str.len().gt(0).all(), "every node needs a limitation"
     assert len(next_request_df) > 0, "next_data_request.csv has no rows"
 
+    # The timeline is the same money as the edge list, cut by day. If the two totals drift
+    # the replay on the screen would show a different month from the one the ranking used.
+    assert abs(float(tl.sum_kzt.sum()) - report["turnover_kzt"]) < 1.0, (
+        f"timeline.csv sums to {tl.sum_kzt.sum():,.2f} KZT, "
+        f"integrity report says {report['turnover_kzt']:,.2f}")
+    assert (out_dir / "echoes.csv").exists(), "echoes.csv was not written"
+    assert len(echoes_df) > 0, "echoes.csv has no rows"
+    assert echoes_df.echo_id.is_unique, "echo_id must identify one echo"
+    assert echoes_df.evidence.str.len().between(1, 200).all(), (
+        "every echo needs evidence of 1..200 characters")
+    assert echoes_df.score.between(0, 1).all(), "echo score must lie in 0..1"
+
     elapsed = time.time() - t0
     print(f"\nnodes_roles.csv       {len(nodes_roles):>6} rows")
     print(f"clusters.csv          {len(cluster_table):>6} rows")
@@ -162,6 +184,11 @@ def main() -> int:
     print(f"\nformations by kind:\n{formations_df.kind.value_counts().to_string()}")
     print(f"\nreciprocal pairs   {len(recips):>6}")
     print(f"cycles <= 6 hops   {len(loops):>6}")
+    echo_kinds = echoes_df.kind.value_counts().to_dict()
+    print(f"days with transfers {tl.date.nunique():>5} of {len(timeline.days(tl))}")
+    print(f"amount echoes found: {len(echoes_df)} "
+          f"(relay {echo_kinds.get('relay', 0)}, split {echo_kinds.get('split', 0)}, "
+          f"fan_split {echo_kinds.get('fan_split', 0)})")
     print("\nnetwork after removing the top ranked nodes:")
     print(resil.to_string(index=False))
     print("\nwhat the crawl could not see:")
