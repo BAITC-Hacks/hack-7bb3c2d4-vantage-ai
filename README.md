@@ -442,3 +442,19 @@ no output of this system says they are.
 **Sam Yarasani and Karina Shalia**
 
 </div>
+
+---
+
+## How this would be deployed in production for a government financial monitoring body
+
+Nothing below is built. It is the deployment path, stated so that a reader can judge how far the prototype is from service.
+
+**Where it runs.** On a server inside the authority's own network, or in the state cloud, with no outbound connection. The pipeline makes no network request and calls no model (`src/`, verify with `grep -rln "urllib\|socket\|http" src/*/*.py`, which returns only the local file server), so the transaction data never leaves the building. One virtual machine with Python 3.11 and the five pinned packages in `requirements.txt` is the whole runtime. The current extract runs in about a second; the "Scaling" paragraph above states what changes at one million accounts.
+
+**How a case flows through it.** Law enforcement or the authority supplies the list of accounts and the bank supplies the transfer extract, in the three-file format in `docs/DATASET-README.md`. A scheduled or on-demand job runs `python3 run.py` per case and writes the fifteen files in `out/` to a case folder. The analyst opens the screen (`web/`, served behind the authority's single sign-on rather than the demo file server) in Russian, Kazakh or English, works the priority list and the groups, and exports `next_data_request.csv` as the formal request for the next extract. When the next hop arrives, the job runs again on the wider extract, so the request loop closes inside the same tool.
+
+**Why an auditor can accept its output.** Every role is a named rule with a numeric threshold in one file (`src/moneygraph/roles.py`, `THRESHOLDS`), so a compliance officer can read, sign off and version the rules without reading the rest of the code. The outputs are deterministic: the same extract and the same pinned versions reproduce the same fifteen files byte for byte, so an output can be re-derived in a dispute. Every row carries its evidence with the figures the rule used, and every finding is worded as a hypothesis for review, never as a finding against a person.
+
+**What would be added before service.** Access control and an audit log of who opened which account; retention and deletion rules for case folders; a signed release of the rule thresholds with a change history; a check of the extract's schema at intake with a rejection report; and a test suite run against each new extract, of which `tests/` and `qa/independent/` are the start.
+
+**Who it serves.** The second-tier bank's financial monitoring function that the case specification describes (`docs/case-spec-full.txt`, lines 493 to 499), the authority that receives its reports, and the law enforcement unit that supplies the list and receives the request. The same output file serves all three, which is the point: one computed request instead of three separately drafted ones.
