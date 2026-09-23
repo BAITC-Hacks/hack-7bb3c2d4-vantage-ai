@@ -32,6 +32,12 @@ class _Handler(http.server.SimpleHTTPRequestHandler):
         self._roots = {"web": web_dir, "out": out_dir}
         super().__init__(*args, **kw)
 
+    def end_headers(self):
+        # The screen is edited and reloaded during a demo; a cached stylesheet would show
+        # the previous version. Nothing served here is large enough to need a cache.
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
     def translate_path(self, path: str) -> str:
         parts = [p for p in unquote(path.split("?", 1)[0].split("#", 1)[0]).split("/") if p]
         # posixpath.normpath collapses any .. before the prefix is checked, so a request

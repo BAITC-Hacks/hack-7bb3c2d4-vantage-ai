@@ -65,6 +65,9 @@ const CSS = `
 .replay .rp-btn{height:2rem;padding:0 .8rem;border:1px solid var(--line);border-radius:var(--r-md,8px);background:var(--sunk);color:var(--text);
   font:500 .8125rem/1 var(--body);cursor:pointer;min-width:64px;font-variant-numeric:tabular-nums}
 .replay .rp-btn:hover{background:var(--strong)}
+.replay .rp-play{height:3.4rem;padding:0 2rem;font-size:1.1rem;font-weight:800;letter-spacing:-.01em;background:var(--amber);color:#0B0C0D;border-color:var(--amber);border-radius:var(--r-pill,14px)}
+.replay .rp-play:hover{filter:brightness(1.08);background:var(--amber)}
+.replay .rp-play[aria-pressed=true]{background:var(--amber);color:#0B0C0D;box-shadow:none}
 .replay .rp-btn[aria-pressed=true]{background:var(--panel);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
 .replay .rp-range{flex:1 1 160px;min-width:120px;height:22px;margin:0;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;accent-color:var(--amber)}
 .replay .rp-range::-webkit-slider-runnable-track{height:2px;background:var(--line);border-radius:1px}
@@ -201,7 +204,7 @@ export function mountReplay(container, D, api) {
 
   /* controls */
   const row = document.createElement("div"); row.className = "rp-row";
-  const play = document.createElement("button"); play.className = "rp-btn"; play.type = "button"; play.textContent = s("play");
+  const play = document.createElement("button"); play.className = "rp-btn rp-play"; play.type = "button"; play.textContent = "\u25B6 " + s("play");
   const range = document.createElement("input"); range.className = "rp-range"; range.type = "range";
   range.min = "1"; range.max = String(N); range.step = "1"; range.value = "1"; range.setAttribute("aria-label", s("dayOfMonth"));
   const dateEl = document.createElement("div"); dateEl.className = "rp-date";
