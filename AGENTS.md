@@ -9,7 +9,7 @@ organised group from a four-hop transfer network: assign every node a role, clus
 rank who an AML analyst should investigate first.
 
 Read before proposing anything: `docs/case-spec-full.txt` (the case specification),
-`docs/FINDINGS.md` (what is actually in the data, measured), `docs/PLAN.md` (the build order).
+`docs/FINDINGS.md` (what is actually in the data, measured).
 
 ## Hard constraints from the case specification
 
