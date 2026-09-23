@@ -56,7 +56,8 @@ class OutputAcceptance(unittest.TestCase):
 
     def test_roles_scores_and_evidence(self):
         allowed = {'consolidator', 'transit', 'distributor', 'terminal',
-                   'coordinator', 'peripheral', 'unclassified'}  # documented extension
+                   'coordinator', 'peripheral', 'unclassified',  # documented extension
+                   'abstained_boundary', 'abstained_single_observation'}  # README, abstention
         for row in self.outputs['nodes_roles'][1]:
             with self.subTest(gid=row['gid']):
                 self.assertIn(row['role'], allowed)
