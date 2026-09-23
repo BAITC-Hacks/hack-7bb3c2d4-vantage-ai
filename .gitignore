@@ -1,0 +1,8 @@
+node_modules/
+/dist/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+# client/dist is committed on purpose so a judge never has to build the frontend
