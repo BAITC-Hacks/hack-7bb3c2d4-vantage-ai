@@ -11,14 +11,14 @@ const T = {
   en: {
     play: "Play",
     pause: "Pause",
-    trail: "Trail",
-    kztMoved: "KZT moved",
+    trail: "Show previous days",
+    kztMoved: "KZT transferred",
     transfers: "transfers",
     activeAccounts: "active accounts",
-    knownClients: "known clients",
+    knownClients: "listed accounts",
     hop: "hop {n}",
     hintSelect: "click a node to select",
-    hintMock: "mock days (D.days missing)",
+    hintMock: "placeholder days (D.days missing)",
     dayOfMonth: "Day of month",
     barTitle: "{date} — {kzt} KZT, {n} transfers",
     locale: "en-GB",
@@ -26,14 +26,14 @@ const T = {
   ru: {
     play: "Воспроизвести",
     pause: "Пауза",
-    trail: "След",
+    trail: "Показать предыдущие дни",
     kztMoved: "переведено, KZT",
     transfers: "переводов",
     activeAccounts: "активных счетов",
-    knownClients: "известные клиенты",
+    knownClients: "счета из списка",
     hop: "шаг {n}",
     hintSelect: "нажмите на узел, чтобы выбрать",
-    hintMock: "демо-дни (D.days отсутствует)",
+    hintMock: "дни-заглушки (D.days отсутствует)",
     dayOfMonth: "День месяца",
     barTitle: "{date} — {kzt} KZT, переводов: {n}",
     locale: "ru-RU",
@@ -41,14 +41,14 @@ const T = {
   kk: {
     play: "Ойнату",
     pause: "Кідірту",
-    trail: "Із",
+    trail: "Алдыңғы күндерді көрсету",
     kztMoved: "аударылды, KZT",
     transfers: "аударым",
     activeAccounts: "белсенді шоттар",
-    knownClients: "белгілі клиенттер",
+    knownClients: "тізімдегі шоттар",
     hop: "{n}-қадам",
     hintSelect: "таңдау үшін түйінді басыңыз",
-    hintMock: "демо күндер (D.days жоқ)",
+    hintMock: "уақытша күндер (D.days жоқ)",
     dayOfMonth: "Айдың күні",
     barTitle: "{date} — {kzt} KZT, аударым: {n}",
     locale: "kk-KZ",
@@ -58,46 +58,48 @@ const t = (k, lang) => (T[lang] || T.en)[k] ?? T.en[k] ?? k;
 const _fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, v) => (vars[v] ?? ""));
 
 const CSS = `
-.replay{display:flex;flex-direction:column;gap:10px;min-height:560px;font:14px/1.4 var(--body);color:var(--fg);
+.replay{display:flex;flex-direction:column;gap:10px;min-height:560px;font:.8125rem/1.4 var(--body);color:var(--text);
   font-variant-numeric:tabular-nums;box-sizing:border-box}
 .replay *{box-sizing:border-box}
 .replay .rp-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.replay .rp-btn{padding:7px 13px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--fg);
-  font:600 13px/1 var(--body);cursor:pointer;min-width:64px;font-variant-numeric:tabular-nums}
-.replay .rp-btn:hover{border-color:var(--primary)}
-.replay .rp-btn[aria-pressed=true]{border-color:var(--primary);color:var(--primary)}
-.replay .rp-range{flex:1 1 160px;min-width:120px;height:22px;margin:0;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer}
-.replay .rp-range::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px}
-.replay .rp-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;
-  background:var(--primary);border:1px solid var(--bg)}
-.replay .rp-range::-moz-range-track{height:4px;background:var(--line);border-radius:2px}
-.replay .rp-range::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--primary);border:1px solid var(--bg)}
-.replay .rp-date{font:700 26px/1 var(--display);min-width:118px;white-space:nowrap}
+.replay .rp-btn{height:2rem;padding:0 .8rem;border:1px solid var(--line);border-radius:var(--r-md,8px);background:var(--sunk);color:var(--text);
+  font:500 .8125rem/1 var(--body);cursor:pointer;min-width:64px;font-variant-numeric:tabular-nums}
+.replay .rp-btn:hover{background:var(--strong)}
+.replay .rp-btn[aria-pressed=true]{background:var(--panel);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
+.replay .rp-range{flex:1 1 160px;min-width:120px;height:22px;margin:0;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;accent-color:var(--amber)}
+.replay .rp-range::-webkit-slider-runnable-track{height:2px;background:var(--line);border-radius:1px}
+.replay .rp-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;
+  background:var(--amber);border:1px solid var(--bg)}
+.replay .rp-range::-moz-range-track{height:2px;background:var(--line);border-radius:1px}
+.replay .rp-range::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--amber);border:1px solid var(--bg)}
+.replay .rp-date{font:600 1.5rem/1 var(--display);letter-spacing:-.02em;color:var(--fg);min-width:118px;white-space:nowrap}
 .replay .rp-figs{display:flex;gap:18px;margin-left:auto}
-.replay .rp-fig b{display:block;font:700 17px/1.15 var(--display);white-space:nowrap}
-.replay .rp-fig span{font-size:11px;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em}
-.replay .rp-spark{display:flex;align-items:flex-end;gap:2px;height:40px;padding:4px 6px;border:1px solid var(--line);border-radius:8px;
+.replay .rp-fig b{display:block;font:600 1.0625rem/1.15 var(--display);letter-spacing:-.02em;color:var(--fg);white-space:nowrap}
+.replay .rp-fig span{font-size:.72rem;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.06em}
+.replay .rp-spark{display:flex;align-items:flex-end;gap:2px;height:40px;padding:4px 6px;border:1px solid var(--line);border-radius:var(--r-md,8px);
   background:var(--sunk)}
-.replay .rp-bar{flex:1 1 0;min-height:2px;background:var(--muted);opacity:.45;border-radius:1px 1px 0 0;cursor:pointer;border:0;padding:0}
-.replay .rp-bar:hover{opacity:.8}
+.replay .rp-bar{flex:1 1 0;min-height:2px;background:var(--steel);opacity:.6;border-radius:1px 1px 0 0;cursor:pointer;border:0;padding:0}
+.replay .rp-bar:hover{background:var(--text);opacity:1}
 .replay .rp-bar.cur{background:var(--amber);opacity:1}
-.replay .rp-stage{position:relative;flex:1 1 auto;min-height:420px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);overflow:hidden}
-.replay .rp-stage canvas{display:block;width:100%;height:100%}
-.replay .rp-hint{position:absolute;right:10px;bottom:6px;font:11px/1 var(--mono);color:var(--muted);pointer-events:none}
+.replay .rp-stage{position:relative;flex:1 1 auto;min-height:420px;padding:8px;border:1px solid var(--line);border-radius:var(--r-xl,16px);overflow:hidden;
+  background:linear-gradient(var(--grid) 1px,transparent 1px) content-box,linear-gradient(90deg,var(--grid) 1px,transparent 1px) content-box,
+  linear-gradient(var(--bg),var(--bg)) content-box,var(--sunk);background-size:32px 32px,32px 32px,auto,auto}
+.replay .rp-stage canvas{display:block;width:calc(100% + 16px);height:calc(100% + 16px);margin:-8px}
+.replay .rp-hint{position:absolute;right:12px;bottom:8px;font:.72rem/1 var(--body);color:var(--steel);pointer-events:none}
 /* phone: controls wrap onto rows (play · date · trail / slider / figures); bars keep a tall hit area */
 @media (max-width:640px){
   .replay{min-height:0;gap:8px}
   .replay .rp-row{gap:8px 10px}
-  .replay .rp-btn{min-height:36px;padding:8px 12px}
-  .replay .rp-date{font-size:20px;min-width:0;flex:1 1 auto}
+  .replay .rp-btn{height:auto;min-height:36px;padding:0 12px}
+  .replay .rp-date{font-size:1.25rem;min-width:0;flex:1 1 auto}
   .replay .rp-range{order:5;flex:1 1 100%;min-width:0;height:36px}
   .replay .rp-range::-webkit-slider-runnable-track{margin-top:0}
-  .replay .rp-range::-webkit-slider-thumb{width:22px;height:22px;margin-top:-9px}
+  .replay .rp-range::-webkit-slider-thumb{width:22px;height:22px;margin-top:-10px}
   .replay .rp-range::-moz-range-thumb{width:22px;height:22px}
   .replay .rp-figs{order:6;flex:1 1 100%;margin-left:0;justify-content:space-between;gap:8px}
   .replay .rp-fig{min-width:0}
-  .replay .rp-fig b{font-size:15px}
-  .replay .rp-fig span{font-size:10px;white-space:normal}
+  .replay .rp-fig b{font-size:.9375rem}
+  .replay .rp-fig span{font-size:.66rem;white-space:normal}
   .replay .rp-spark{height:48px;gap:1px;padding:4px 4px 0;align-items:flex-end}
   .replay .rp-bar{position:relative;min-width:0}
   .replay .rp-bar::after{content:"";position:absolute;left:-1px;right:0;top:-44px;bottom:0}
