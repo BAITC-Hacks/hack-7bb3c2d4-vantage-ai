@@ -6,6 +6,10 @@
 
 **HackAlem AI 2026 · Track 02 · Freedom**
 
+## [Open the live case file →](https://money-graph.pages.dev/web/)
+
+**https://money-graph.pages.dev/web/** · nothing to install, the same screen `python3 run.py --serve` builds locally
+
 </div>
 
 ![The investigator's funnel: 81 names given, 2,248 accounts crawled, 653 structures found, 25 priority targets, one breaking point per structure](docs/img/journey.png)
@@ -223,7 +227,7 @@ Transfers by day.
 
 ### The review screen
 
-`python3 run.py --serve`, then `http://localhost:8000/web/`. One HTML page and three modules, no
+Live at **https://money-graph.pages.dev/web/**, or `python3 run.py --serve` then `http://localhost:8000/web/`. One HTML page and three modules, no
 framework, no build step, no request to anything but its own `graph.json`. It is laid out as seven
 numbered sections in a rail, with one search box that takes an account id from anywhere.
 
