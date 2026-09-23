@@ -222,6 +222,7 @@ canvas.map{display:block;width:100%;height:34rem;cursor:default}
   main{margin-top:0}
   .explore,.grid2,.hero{grid-template-columns:1fr}
   .dash{grid-template-columns:1fr 1fr}
+  .dash .t .v{white-space:normal;font-size:1.35rem;word-break:break-word}
   section.page{padding:1.4rem 1.2rem 3rem}
   .find input{width:11rem}
   .case{display:none}
@@ -715,6 +716,7 @@ function route() {
   const p = PAGES.includes(page) ? page : "start";
   PAGES.forEach(x => $("p-" + x).toggleAttribute("data-on", x === p));
   document.querySelectorAll("#rail a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + p));
+  document.querySelector("#rail a[aria-current=true]")?.scrollIntoView({ block: "nearest", inline: "center" });
   if (p === "account") showAccount(arg || mapA.focus?.n?.id || TOP[0]?.gid);
   if (p === "structures") showForm(arg ? FORMS.find(f => String(f.rank) === arg) : (mapF.focus?.f || FORMS[0]));
   window.scrollTo(0, 0);
