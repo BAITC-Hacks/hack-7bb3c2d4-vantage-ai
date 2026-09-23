@@ -53,7 +53,7 @@ an outbound-only crawl.
 | Numeric evidence per node | `nodes_roles.csv`, `evidence` column | Non-empty on all 2,248 rows, asserted. Longest string 161 characters, under the 200 limit |
 | `clusters.csv` with a hypothesis | `out/clusters.csv` | 91 clusters, non-empty hypothesis on every row, asserted |
 | `top_nodes.csv`, at least 20 rows | `out/top_nodes.csv` | 25 rows, asserted |
-| Search by account id | `web/index.html` | Type any gid, get its role, its rule confidence, its evidence, its money in and out, its hop, its community, its priority and its knowledge state |
+| Search by account id | `web/index.html` | Type or pick any gid, get its plain-language assessment, the rule and the numbers behind it, its money in and out, its hop, its group, its priority, its knowledge state, and the accounts around it on the map |
 | No black-box roles | `src/moneygraph/roles.py` | Every role is a named rule with a numeric threshold. Zero model calls anywhere in the pipeline |
 | No hardcoded account lists | `src/`, `web/`, `tools/` | Zero account id literals in any `.py` or `.html` file. Nothing is tuned to a specific account |
 | No external enrichment | whole repo | Three parquet files in, thirteen files out. The pipeline imports no network library and makes no request |
@@ -267,8 +267,34 @@ the run beside it, and nothing else: no CDN, no web font, no external image, no 
 served over HTTP rather than opened from disk, because a browser refuses a `fetch` from a `file://`
 page, and the built-in server mounts only `/web/` and `/out/` rather than the repository root.
 
-Seven panels: formations with their breaking points, the priority list, where centrality and evidence
-disagree, the resilience measurement, communities, return flows, and what the crawl could not see.
+It opens on the answer to the case's question: which of these 2,248 accounts to look at first, and
+why. The header carries a summary strip, 81 known clients, 2,248 accounts reached, 25 to review first,
+653 structures found, 558 not judged, and a button, "Where the data runs out", that opens a
+full-width panel.
+
+Three panes. On the left, a search box and two tabs: "Accounts to review", the ranked list
+from `top_nodes.csv` with rank, role and a one-line reason, and Structures, the formations from
+`formations.csv` with kind, members, known clients and KZT through. Clicking a row selects it. In the
+centre, the map. Its default mode, "Around this account", puts the selected account in the middle,
+the accounts that paid it on the left, the accounts it paid on the right, one more ring either side,
+arrows pointing the way the money moved, line width by KZT, nodes coloured by role, known clients
+ringed. A toggle, "Whole network", lays all 2,248 out by hop, known clients on the left and hop 4 on
+the right, with the selection highlighted. Selecting a structure shows its members and the edges
+between them, with its breaking point marked in amber. Hovering a node shows its id and role;
+clicking selects it. A legend lists the roles with counts, and hovering a role shows its plain
+definition. On the right, "This account": the full gid, a sentence of the form "Received X KZT from
+N accounts and sent Y KZT to M accounts", the assessed role with its plain definition, the rule's own
+evidence string and confidence, the investigation priority score with its rank when the account is in
+the top list, hop from a known client, group id, the knowledge state and confidence from
+`completeness.csv` with its limitation sentence, the structures the account belongs to, each
+clickable, and a caveat when the account sits at hop 4 with nothing going out.
+
+The search box autocompletes on the id digits. Typing a full id or picking a suggestion selects the
+account and the map re-centres on it. "Where the data runs out" holds the completeness summary
+figures, the ranked next data requests with what each would resolve, the table of accounts where a
+plain centrality ranking and the evidence ranking disagree, and the removal test, what happens to the
+network if the top-ranked accounts are removed.
+
 Account ids are handled as strings throughout, because an 18 digit id exceeds
 `Number.MAX_SAFE_INTEGER` and two different accounts compare as equal the moment one becomes a number.
 
