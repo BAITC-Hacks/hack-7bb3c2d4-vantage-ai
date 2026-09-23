@@ -1,0 +1,67 @@
+====================================================================
+DATA INTEGRITY
+====================================================================
+  nodes_declared                   2248
+  nodes_in_graph                   2248
+  edges                            3119
+  transactions                     4840
+  turnover_kzt                     365890012.01
+  period                           ('2026-07-01', '2026-07-31')
+  seeds                            81
+  seeds_absent_from_edges          19
+  seeds_without_outgoing           31
+  dead_ends                        1554
+  dead_ends_truncated_depth4       444
+  dead_ends_genuine                1110
+  weakly_connected_components      35
+  edges_match_transactions         True
+====================================================================
+
+nodes_roles.csv         2248 rows
+clusters.csv              91 rows
+top_nodes.csv             25 rows
+formations.csv           653 rows
+formation_members.csv   4752 rows
+completeness.csv        2248 rows
+next_data_request.csv      5 rows
+
+role distribution:
+role
+terminal                        1091
+peripheral                       476
+abstained_boundary               444
+abstained_single_observation     114
+transit                           72
+distributor                       26
+coordinator                       20
+consolidator                       5
+
+formations by kind:
+kind
+reciprocal_loop    377
+bridge             172
+chain               51
+fan_out             45
+funnel               8
+
+reciprocal pairs      177
+cycles <= 6 hops     1541
+days with transfers    31 of 31
+amount echoes found: 203 (relay 135, split 61, fan_split 7)
+
+network after removing the top ranked nodes:
+ removed  largest_component  n_components  nodes_reachable_from_seeds
+       0               1877            35                        2248
+       1               1863            37                        2243
+       3               1802            75                        2173
+       5               1794            77                        2165
+      10               1726           115                        2088
+      20               1616           172                        1917
+
+what the crawl could not see:
+  nodes not fully observed         1604 (71.35%)
+  seed funding with no payer       40,445,011 KZT (11.05% of turnover)
+  top 20 resting on incomplete data    2
+  ground truth check               agrees with the brief
+
+completed in 3.22 s

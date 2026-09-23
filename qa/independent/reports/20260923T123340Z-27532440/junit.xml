@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="20" skipped="0" tests="353" time="37.973" timestamp="2026-09-23T17:33:41.888380+05:00" hostname="MacBook-Pro-Karina.local"><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params0-peripheral]" time="0.001" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params1-abstained_boundary]" time="0.001" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params2-terminal]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params3-consolidator]" time="0.001" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params4-peripheral]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params5-peripheral]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params6-consolidator]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params7-distributor]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params8-peripheral]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params9-transit]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params10-transit]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params11-peripheral]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params12-peripheral]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params13-coordinator]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params14-peripheral]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params15-peripheral]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params16-abstained_single_observation]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params17-peripheral]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params18-peripheral]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params19-consolidator]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params20-distributor]" time="0.000" /><testcase classname="tests.test_analytics" name="test_role_boundaries_and_precedence[params21-transit]" time="0.000" /><testcase classname="tests.test_analytics" name="test_transit_is_ratio_only_as_documented[-10]" time="0.000" /><testcase classname="tests.test_analytics" name="test_transit_is_ratio_only_as_documented[0]" time="0.000" /><testcase classname="tests.test_analytics" name="test_transit_is_ratio_only_as_documented[1]" time="0.000" /><testcase classname="tests.test_analytics" name="test_transit_is_ratio_only_as_documented[2]" time="0.000" /><testcase classname="tests.test_analytics" name="test_transit_is_ratio_only_as_documented[10]" time="0.000" /><testcase classname="tests.test_analytics" name="test_transit_is_ratio_only_as_documented[nan]" time="0.000" /><testcase classname="tests.test_analytics" name="test_isolated_role_low_confidence[False]" time="0.000" /><testcase classname="tests.test_analytics" name="test_isolated_role_low_confidence[True]" time="0.000" /><testcase classname="tests.test_analytics" name="test_seed_role_does_not_use_unobserved_inflow[0.1]" time="0.001"><failure message="AssertionError: assert 'consolidator' not in {'consolidator', 'transit'}">ratio = 0.1
+
+    @pytest.mark.parametrize('ratio',[.1,.4,.9,1.1,2])
+    def test_seed_role_does_not_use_unobserved_inflow(ratio):
+        # Project AGENTS.md explicitly states seed roles use outbound data only.
+        r=row(is_seed=True,in_deg=8,out_deg=3,pass_through=ratio)
+&gt;       assert roles._classify(r)[0] not in {'consolidator','transit'}
+E       AssertionError: assert 'consolidator' not in {'consolidator', 'transit'}
+
+tests/test_analytics.py:62: AssertionError</failure></testcase><testcase classname="tests.test_analytics" name="test_seed_role_does_not_use_unobserved_inflow[0.4]" time="0.001"><failure message="AssertionError: assert 'consolidator' not in {'consolidator', 'transit'}">ratio = 0.4
+
+    @pytest.mark.parametrize('ratio',[.1,.4,.9,1.1,2])
+    def test_seed_role_does_not_use_unobserved_inflow(ratio):
+        # Project AGENTS.md explicitly states seed roles use outbound data only.
+        r=row(is_seed=True,in_deg=8,out_deg=3,pass_through=ratio)
+&gt;       assert roles._classify(r)[0] not in {'consolidator','transit'}
+E       AssertionError: assert 'consolidator' not in {'consolidator', 'transit'}
+
+tests/test_analytics.py:62: AssertionError</failure></testcase><testcase classname="tests.test_analytics" name="test_seed_role_does_not_use_unobserved_inflow[0.9]" time="0.000"><failure message="AssertionError: assert 'transit' not in {'consolidator', 'transit'}">ratio = 0.9
+
+    @pytest.mark.parametrize('ratio',[.1,.4,.9,1.1,2])
+    def test_seed_role_does_not_use_unobserved_inflow(ratio):
+        # Project AGENTS.md explicitly states seed roles use outbound data only.
+        r=row(is_seed=True,in_deg=8,out_deg=3,pass_through=ratio)
+&gt;       assert roles._classify(r)[0] not in {'consolidator','transit'}
+E       AssertionError: assert 'transit' not in {'consolidator', 'transit'}
+
+tests/test_analytics.py:62: AssertionError</failure></testcase><testcase classname="tests.test_analytics" name="test_seed_role_does_not_use_unobserved_inflow[1.1]" time="0.001"><failure message="AssertionError: assert 'transit' not in {'consolidator', 'transit'}">ratio = 1.1
+
+    @pytest.mark.parametrize('ratio',[.1,.4,.9,1.1,2])
+    def test_seed_role_does_not_use_unobserved_inflow(ratio):
+        # Project AGENTS.md explicitly states seed roles use outbound data only.
+        r=row(is_seed=True,in_deg=8,out_deg=3,pass_through=ratio)
+&gt;       assert roles._classify(r)[0] not in {'consolidator','transit'}
+E       AssertionError: assert 'transit' not in {'consolidator', 'transit'}
+
+tests/test_analytics.py:62: AssertionError</failure></testcase><testcase classname="tests.test_analytics" name="test_seed_role_does_not_use_unobserved_inflow[2]" time="0.000" /><testcase classname="tests.test_analytics" name="test_outbound_only_seed_can_be_distributor[20]" time="0.001"><failure message="AssertionError: assert 'peripheral' == 'distributor'&#10;  &#10;  - distributor&#10;  + peripheral">degree = 20
+
+    @pytest.mark.parametrize('degree',[20,60,116])
+    def test_outbound_only_seed_can_be_distributor(degree):
+        # Useful behavioural check: visible high fan-out is evidence even when inflow is absent.
+&gt;       assert roles._classify(row(is_seed=True,in_deg=0,out_deg=degree))[0]=='distributor'
+E       AssertionError: assert 'peripheral' == 'distributor'
+E
+E         - distributor
+E         + peripheral
+
+tests/test_analytics.py:67: AssertionError</failure></testcase><testcase classname="tests.test_analytics" name="test_outbound_only_seed_can_be_distributor[60]" time="0.001"><failure message="AssertionError: assert 'peripheral' == 'distributor'&#10;  &#10;  - distributor&#10;  + peripheral">degree = 60
+
+    @pytest.mark.parametrize('degree',[20,60,116])
+    def test_outbound_only_seed_can_be_distributor(degree):
+        # Useful behavioural check: visible high fan-out is evidence even when inflow is absent.
+&gt;       assert roles._classify(row(is_seed=True,in_deg=0,out_deg=degree))[0]=='distributor'
+E       AssertionError: assert 'peripheral' == 'distributor'
+E
+E         - distributor
+E         + peripheral
+
+tests/test_analytics.py:67: AssertionError</failure></testcase><testcase classname="tests.test_analytics" name="test_outbound_only_seed_can_be_distributor[116]" time="0.001"><failure message="AssertionError: assert 'peripheral' == 'distributor'&#10;  &#10;  - distributor&#10;  + peripheral">degree = 116
+
+    @pytest.mark.parametrize('degree',[20,60,116])
+    def test_outbound_only_seed_can_be_distributor(degree):
+        # Useful behavioural check: visible high fan-out is evidence even when inflow is absent.
+&gt;       assert roles._classify(row(is_seed=True,in_deg=0,out_deg=degree))[0]=='distributor'
+E       AssertionError: assert 'peripheral' == 'distributor'
+E
+E         - distributor
+E         + peripheral
+
+tests/test_analytics.py:67: AssertionError</failure></testcase><testcase classname="tests.test_analytics" name="test_role_assignment_does_not_mutate_input" time="0.022" /><testcase classname="tests.test_analytics" name="test_priority_constant_features_finite[1]" time="0.008" /><testcase classname="tests.test_analytics" name="test_priority_constant_features_finite[2]" time="0.005" /><testcase classname="tests.test_analytics" name="test_priority_constant_features_finite[5]" time="0.005" /><testcase classname="tests.test_analytics" name="test_priority_constant_features_finite[25]" time="0.005" /><testcase classname="tests.test_analytics" name="test_priority_constant_features_finite[30]" time="0.007" /><testcase classname="tests.test_analytics" name="test_priority_no_input_mutation" time="0.005" /><testcase classname="tests.test_analytics" name="test_seed_priority_invariant_to_inflow" time="0.008"><failure message="assert np.float64(0.25) == np.float64(0.0)&#10; +  where np.float64(0.25) = gid                              1\ndepth                            1\nis_seed                       True\nisolated     ...y_score                0.1\nrole                   distributor\npriority_score                0.25\nName: 0, dtype: object.priority_score">def test_seed_priority_invariant_to_inflow():
+        frame=pd.DataFrame([dict(vars(row(gid=1,is_seed=True)),role='distributor'),
+                            dict(vars(row(gid=2,in_kzt=200000,in_deg=10,authority_score=.3)),role='distributor')])
+        first=priority.rank(frame)[0].iloc[0].priority_score
+        frame.loc[0,'in_kzt']=1e9
+&gt;       assert priority.rank(frame)[0].iloc[0].priority_score==first
+E       assert np.float64(0.25) == np.float64(0.0)
+E        +  where np.float64(0.25) = gid                              1\ndepth                            1\nis_seed                       True\nisolated     ...y_score                0.1\nrole                   distributor\npriority_score                0.25\nName: 0, dtype: object.priority_score
+
+tests/test_analytics.py:90: AssertionError</failure></testcase><testcase classname="tests.test_analytics" name="test_completeness_states[params0-isolated]" time="0.000" /><testcase classname="tests.test_analytics" name="test_completeness_states[params1-truncated_at_depth]" time="0.000" /><testcase classname="tests.test_analytics" name="test_completeness_states[params2-outbound_only]" time="0.001" /><testcase classname="tests.test_analytics" name="test_completeness_states[params3-outbound_only]" time="0.000" /><testcase classname="tests.test_analytics" name="test_completeness_states[params4-inbound_only]" time="0.001" /><testcase classname="tests.test_analytics" name="test_completeness_states[params5-fully_observed]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[0-isolated]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[0-truncated_at_depth]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[0-outbound_only]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[0-inbound_only]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[0-fully_observed]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[2-isolated]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[2-truncated_at_depth]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[2-outbound_only]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[2-inbound_only]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[2-fully_observed]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[4-isolated]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[4-truncated_at_depth]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[4-outbound_only]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[4-inbound_only]" time="0.000" /><testcase classname="tests.test_analytics" name="test_confidence_caps[4-fully_observed]" time="0.000" /><testcase classname="tests.test_analytics" name="test_reachability_matches_networkx_on_cycles" time="0.016" /><testcase classname="tests.test_analytics" name="test_cycle_detector_known_triangle" time="0.008" /><testcase classname="tests.test_analytics" name="test_cycle_free_graph_returns_empty_schema" time="0.006" /><testcase classname="tests.test_analytics" name="test_no_reciprocal_pairs_returns_empty_schema" time="0.007"><failure message="KeyError: 'returned_share'">synthetic = &lt;function synthetic.&lt;locals&gt;.make at 0x10e0c6c00&gt;
+
+    def test_no_reciprocal_pairs_returns_empty_schema(synthetic):
+        d=synthetic([(1,2,'2026-07-01',10)])
+&gt;       r=flows.reciprocal_pairs(d); assert r.empty and 'returned_share' in r
+
+tests/test_analytics.py:131:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/private/var/folders/9v/tnc_k0yj4b7gvq_rhc03405m0000gn/T/moneygraph-isolated-l9_3_buc/app/src/moneygraph/flows.py:31: in reciprocal_pairs
+    return pd.DataFrame(rows).sort_values("returned_share", ascending=False).reset_index(drop=True)
+.venv/lib/python3.11/site-packages/pandas/core/frame.py:8347: in sort_values
+    k = self._get_label_or_level_values(by[0], axis=axis)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Empty DataFrame
+Columns: []
+Index: [], key = 'returned_share', axis = 0
+
+    @final
+    def _get_label_or_level_values(self, key: Level, axis: AxisInt = 0) -&gt; ArrayLike:
+        """
+        Return a 1-D array of values associated with `key`, a label or level
+        from the given `axis`.
+
+        Retrieval logic:
+          - (axis=0): Return column values if `key` matches a column label.
+            Otherwise return index level values if `key` matches an index
+            level.
+          - (axis=1): Return row values if `key` matches an index label.
+            Otherwise return column level values if 'key' matches a column
+            level
+
+        Parameters
+        ----------
+        key : Hashable
+            Label or level name.
+        axis : int, default 0
+            Axis that levels are associated with (0 for index, 1 for columns)
+
+        Returns
+        -------
+        np.ndarray or ExtensionArray
+
+        Raises
+        ------
+        KeyError
+            if `key` matches neither a label nor a level
+        ValueError
+            if `key` matches multiple labels
+        """
+        axis = self._get_axis_number(axis)
+        first_other_axes = next(
+            (ax for ax in range(self._AXIS_LEN) if ax != axis), None
+        )
+
+        if self._is_label_reference(key, axis=axis):
+            self._check_label_or_level_ambiguity(key, axis=axis)
+            if first_other_axes is None:
+                raise ValueError("axis matched all axes")
+            values = self.xs(key, axis=first_other_axes)._values
+        elif self._is_level_reference(key, axis=axis):
+            values = self.axes[axis].get_level_values(key)._values
+        else:
+&gt;           raise KeyError(key)
+E           KeyError: 'returned_share'
+
+.venv/lib/python3.11/site-packages/pandas/core/generic.py:1776: KeyError</failure></testcase><testcase classname="tests.test_analytics" name="test_reciprocal_pair_ratio" time="0.008" /><testcase classname="tests.test_analytics" name="test_chains_are_valid_seed_to_target_paths" time="0.009" /><testcase classname="tests.test_analytics" name="test_chain_cutoff[0]" time="0.009" /><testcase classname="tests.test_analytics" name="test_chain_cutoff[1]" time="0.008" /><testcase classname="tests.test_analytics" name="test_chain_cutoff[4]" time="0.008" /><testcase classname="tests.test_analytics" name="test_echo_tolerance_boundaries[100-100-True]" time="0.000" /><testcase classname="tests.test_analytics" name="test_echo_tolerance_boundaries[100-98-True]" time="0.000" /><testcase classname="tests.test_analytics" name="test_echo_tolerance_boundaries[100-102-True]" time="0.000" /><testcase classname="tests.test_analytics" name="test_echo_tolerance_boundaries[100-97.99-False]" time="0.000" /><testcase classname="tests.test_analytics" name="test_echo_tolerance_boundaries[100-102.01-False]" time="0.001" /><testcase classname="tests.test_analytics" name="test_relay_detection_amount_and_time[10000-0-1]" time="0.034" /><testcase classname="tests.test_analytics" name="test_relay_detection_amount_and_time[10000-1-1]" time="0.027" /><testcase classname="tests.test_analytics" name="test_relay_detection_amount_and_time[10000-2-0]" time="0.020" /><testcase classname="tests.test_analytics" name="test_relay_detection_amount_and_time[10200-0-1]" time="0.025" /><testcase classname="tests.test_analytics" name="test_relay_detection_amount_and_time[10201-0-0]" time="0.023" /><testcase classname="tests.test_analytics" name="test_echo_does_not_match_outflow_before_inflow" time="0.023" /><testcase classname="tests.test_analytics" name="test_split_conserves_amount" time="0.024" /><testcase classname="tests.test_analytics" name="test_fan_split_minimum_distinct_targets[2]" time="0.019" /><testcase classname="tests.test_analytics" name="test_fan_split_minimum_distinct_targets[3]" time="0.024" /><testcase classname="tests.test_analytics" name="test_fan_split_minimum_distinct_targets[4]" time="0.023" /><testcase classname="tests.test_analytics" name="test_fan_split_duplicate_recipient_total" time="0.024"><failure message="AssertionError: Total must include repeated transfers, not only unique recipients&#10;assert np.float64(15000.0) == 20000&#10; +  where np.float64(15000.0) = echo_id                                                ECH-001\nkind                                                 fa...                              1.0\nevidence     sent 5,000 KZT each to 3 distinct accounts on ...\nName: 0, dtype: object.out_kzt">synthetic = &lt;function synthetic.&lt;locals&gt;.make at 0x10e074b80&gt;
+
+    def test_fan_split_duplicate_recipient_total(synthetic):
+        d=synthetic([(1,2,'2026-07-01',5000),(1,2,'2026-07-01',5000),(1,3,'2026-07-01',5000),(1,4,'2026-07-01',5000)])
+        r=echoes.build(d,timeline.build(d)); fan=r[r.kind=='fan_split'].iloc[0]
+&gt;       assert fan.out_kzt==20000, 'Total must include repeated transfers, not only unique recipients'
+E       AssertionError: Total must include repeated transfers, not only unique recipients
+E       assert np.float64(15000.0) == 20000
+E        +  where np.float64(15000.0) = echo_id                                                ECH-001\nkind                                                 fa...                              1.0\nevidence     sent 5,000 KZT each to 3 distinct accounts on ...\nName: 0, dtype: object.out_kzt
+
+tests/test_analytics.py:173: AssertionError</failure></testcase><testcase classname="tests.test_analytics" name="test_echo_consumption_does_not_reuse_transfer" time="0.022" /><testcase classname="tests.test_analytics" name="test_echo_records_preserve_large_ids" time="0.026" /><testcase classname="tests.test_analytics" name="test_echo_csv_reconstruction_excludes_other_dates" time="0.025"><failure message="assert False&#10; +  where False = all(&lt;generator object test_echo_csv_reconstruction_excludes_other_dates.&lt;locals&gt;.&lt;genexpr&gt; at 0x10dfb97d0&gt;)">synthetic = &lt;function synthetic.&lt;locals&gt;.make at 0x10e076840&gt;
+
+    def test_echo_csv_reconstruction_excludes_other_dates(synthetic):
+        d=synthetic([(1,2,'2026-07-01',10000),(2,3,'2026-07-01',10000),(1,2,'2026-07-20',7000)])
+        tl=timeline.build(d); r=echoes.build(d,tl); r.attrs={}
+        legs=echoes.legs(r,tl)
+&gt;       assert all(x['date'] in {'2026-07-01','2026-07-02'} for x in legs[0]['legs'])
+E       assert False
+E        +  where False = all(&lt;generator object test_echo_csv_reconstruction_excludes_other_dates.&lt;locals&gt;.&lt;genexpr&gt; at 0x10dfb97d0&gt;)
+
+tests/test_analytics.py:190: AssertionError</failure></testcase><testcase classname="tests.test_analytics" name="test_timeline_includes_empty_days" time="0.015" /><testcase classname="tests.test_analytics" name="test_timeline_same_pair_same_day_aggregates" time="0.013" /><testcase classname="tests.test_analytics" name="test_json_scalar_sanitisation[value0-7]" time="0.000" /><testcase classname="tests.test_analytics" name="test_json_scalar_sanitisation[1.25-1.25]" time="0.000" /><testcase classname="tests.test_analytics" name="test_json_scalar_sanitisation[value2-True]" time="0.000" /><testcase classname="tests.test_analytics" name="test_json_scalar_sanitisation[nan-None]" time="0.000" /><testcase classname="tests.test_analytics" name="test_json_scalar_sanitisation[inf-None]" time="0.000" /><testcase classname="tests.test_analytics" name="test_json_scalar_sanitisation[-inf-None]" time="0.000" /><testcase classname="tests.test_analytics" name="test_json_scalar_sanitisation[value6-None]" time="0.000" /><testcase classname="tests.test_analytics" name="test_json_scalar_sanitisation[None-None]" time="0.000" /><testcase classname="tests.test_analytics" name="test_json_nested_sanitisation" time="0.000" /><testcase classname="tests.test_analytics" name="test_id_stringification_no_mutation" time="0.001" /><testcase classname="tests.test_analytics" name="test_integrity_detects_edge_transaction_disagreement[amount]" time="0.015"><failure message="assert not True">synthetic = &lt;function synthetic.&lt;locals&gt;.make at 0x10e0742c0&gt;
+mutation = 'amount'
+
+    @pytest.mark.parametrize('mutation',['amount','count','missing_pair'])
+    def test_integrity_detects_edge_transaction_disagreement(synthetic,mutation):
+        d=synthetic([(1,2,'2026-07-01',10000),(2,3,'2026-07-01',10000)])
+        if mutation=='amount': d.tx.loc[0,'sum_kzt']=20000
+        if mutation=='count': d.tx=pd.concat([d.tx,d.tx.iloc[[0]]],ignore_index=True)
+        if mutation=='missing_pair': d.tx=d.tx.iloc[1:]
+&gt;       assert not dataio.integrity_report(d)['edges_match_transactions']
+E       assert not True
+
+tests/test_analytics.py:224: AssertionError</failure></testcase><testcase classname="tests.test_analytics" name="test_integrity_detects_edge_transaction_disagreement[count]" time="0.013"><failure message="assert not True">synthetic = &lt;function synthetic.&lt;locals&gt;.make at 0x10e078ae0&gt;
+mutation = 'count'
+
+    @pytest.mark.parametrize('mutation',['amount','count','missing_pair'])
+    def test_integrity_detects_edge_transaction_disagreement(synthetic,mutation):
+        d=synthetic([(1,2,'2026-07-01',10000),(2,3,'2026-07-01',10000)])
+        if mutation=='amount': d.tx.loc[0,'sum_kzt']=20000
+        if mutation=='count': d.tx=pd.concat([d.tx,d.tx.iloc[[0]]],ignore_index=True)
+        if mutation=='missing_pair': d.tx=d.tx.iloc[1:]
+&gt;       assert not dataio.integrity_report(d)['edges_match_transactions']
+E       assert not True
+
+tests/test_analytics.py:224: AssertionError</failure></testcase><testcase classname="tests.test_analytics" name="test_integrity_detects_edge_transaction_disagreement[missing_pair]" time="0.014" /><testcase classname="tests.test_artifacts" name="test_required_documentation_exists[README.md]" time="0.001" /><testcase classname="tests.test_artifacts" name="test_required_documentation_exists[docs/FORMATIONS.md]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_required_documentation_exists[docs/COMPLETENESS.md]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_required_documentation_exists[docs/SCREEN.md]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_required_documentation_exists[docs/DATASET-README.md]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_required_documentation_exists[docs/case-spec-full.txt]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_documentation_png_is_valid_nonempty[solution-schema]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_documentation_png_is_valid_nonempty[formations]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_documentation_png_is_valid_nonempty[network-overview]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_documentation_png_is_valid_nonempty[roles]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_documentation_png_is_valid_nonempty[rank-disagreement]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_documentation_png_is_valid_nonempty[resilience]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_documentation_png_is_valid_nonempty[blind-spot]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_documentation_png_is_valid_nonempty[journey]" time="0.000" /><testcase classname="tests.test_artifacts" name="test_all_python_source_parses" time="0.037" /><testcase classname="tests.test_artifacts" name="test_readme_local_images_resolve" time="0.001" /><testcase classname="tests.test_artifacts" name="test_root_static_entry_points_to_web" time="0.000" /><testcase classname="tests.test_artifacts" name="test_dependencies_are_pinned" time="0.000" /><testcase classname="tests.test_artifacts" name="test_no_runtime_import_of_qa_tools" time="0.042" /><testcase classname="tests.test_browser" name="test_every_screen_opens_without_script_errors[start]" time="5.156" /><testcase classname="tests.test_browser" name="test_every_screen_opens_without_script_errors[review]" time="0.438" /><testcase classname="tests.test_browser" name="test_every_screen_opens_without_script_errors[account]" time="0.450" /><testcase classname="tests.test_browser" name="test_every_screen_opens_without_script_errors[structures]" time="0.330" /><testcase classname="tests.test_browser" name="test_every_screen_opens_without_script_errors[replay]" time="0.266" /><testcase classname="tests.test_browser" name="test_every_screen_opens_without_script_errors[echoes]" time="0.346" /><testcase classname="tests.test_browser" name="test_every_screen_opens_without_script_errors[limits]" time="0.329" /><testcase classname="tests.test_browser" name="test_default_language_is_english" time="0.234" /><testcase classname="tests.test_browser" name="test_language_switch_persists[ru]" time="0.428" /><testcase classname="tests.test_browser" name="test_language_switch_persists[kk]" time="0.580" /><testcase classname="tests.test_browser" name="test_language_switch_persists[en]" time="0.576" /><testcase classname="tests.test_browser" name="test_theme_toggle_persists" time="0.486" /><testcase classname="tests.test_browser" name="test_search_account_by_full_id[top]" time="0.280" /><testcase classname="tests.test_browser" name="test_search_account_by_full_id[boundary]" time="0.269" /><testcase classname="tests.test_browser" name="test_search_account_by_full_id[isolated]" time="0.263" /><testcase classname="tests.test_browser" name="test_search_account_by_full_id[transit]" time="0.275" /><testcase classname="tests.test_browser" name="test_unknown_account_has_no_stale_card" time="0.278" /><testcase classname="tests.test_browser" name="test_priority_row_opens_exact_account" time="0.377" /><testcase classname="tests.test_browser" name="test_neighbourhood_and_whole_network_toggle" time="0.400" /><testcase classname="tests.test_browser" name="test_canvas_draws_nonuniform_content" time="0.398" /><testcase classname="tests.test_browser" name="test_group_selection" time="0.382" /><testcase classname="tests.test_browser" name="test_replay_play_and_pause" time="0.536" /><testcase classname="tests.test_browser" name="test_replay_slider_first_last_day" time="0.380" /><testcase classname="tests.test_browser" name="test_echo_cards_and_sort" time="0.606" /><testcase classname="tests.test_browser" name="test_echo_open_account" time="0.357" /><testcase classname="tests.test_browser" name="test_responsive_page_has_no_document_overflow[start-390]" time="0.364" /><testcase classname="tests.test_browser" name="test_responsive_page_has_no_document_overflow[start-768]" time="0.471" /><testcase classname="tests.test_browser" name="test_responsive_page_has_no_document_overflow[start-1440]" time="0.401" /><testcase classname="tests.test_browser" name="test_responsive_page_has_no_document_overflow[account-390]" time="0.398" /><testcase classname="tests.test_browser" name="test_responsive_page_has_no_document_overflow[account-768]" time="0.382" /><testcase classname="tests.test_browser" name="test_responsive_page_has_no_document_overflow[account-1440]" time="0.377" /><testcase classname="tests.test_browser" name="test_responsive_page_has_no_document_overflow[structures-390]" time="0.408" /><testcase classname="tests.test_browser" name="test_responsive_page_has_no_document_overflow[structures-768]" time="0.497"><failure message="AssertionError: {'scroll': 787, 'width': 768}&#10;assert 787 &lt;= (768 + 2)">page = &lt;Page url='http://127.0.0.1:61087/web/#structures'&gt;, width = 768
+section = 'structures'
+
+    @pytest.mark.parametrize('width',[390,768,1440])
+    @pytest.mark.parametrize('section',['start','account','structures','echoes'])
+    def test_responsive_page_has_no_document_overflow(page,width,section):
+        page.set_viewport_size({'width':width,'height':900})
+        page.goto(page.url.split('#')[0]+'#'+section)
+        expect(page.locator(f'#p-{section}')).to_be_visible()
+        page.wait_for_timeout(100)
+        sizes=page.evaluate('({scroll:document.documentElement.scrollWidth,width:innerWidth})')
+&gt;       assert sizes['scroll']&lt;=sizes['width']+2,sizes
+E       AssertionError: {'scroll': 787, 'width': 768}
+E       assert 787 &lt;= (768 + 2)
+
+tests/test_browser.py:118: AssertionError</failure></testcase><testcase classname="tests.test_browser" name="test_responsive_page_has_no_document_overflow[structures-1440]" time="0.396" /><testcase classname="tests.test_browser" name="test_responsive_page_has_no_document_overflow[echoes-390]" time="0.417" /><testcase classname="tests.test_browser" name="test_responsive_page_has_no_document_overflow[echoes-768]" time="0.402" /><testcase classname="tests.test_browser" name="test_responsive_page_has_no_document_overflow[echoes-1440]" time="0.386" /><testcase classname="tests.test_browser" name="test_no_external_network_requests" time="0.233" /><testcase classname="tests.test_browser" name="test_missing_payload_shows_actionable_error" time="0.113" /><testcase classname="tests.test_browser" name="test_unknown_route_falls_back_to_overview" time="0.243" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[meta]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[nodes]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[edges]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[top]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[clusters]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[formations]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[formation_members]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[node_completeness]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[next_data_request]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[completeness_summary]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[days]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[echoes]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[integrity]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_payload_sections_present[resilience]" time="0.000" /><testcase classname="tests.test_payload_http" name="test_json_is_strict" time="0.016" /><testcase classname="tests.test_payload_http" name="test_payload_account_ids_are_exact_strings[nodes-id]" time="0.085" /><testcase classname="tests.test_payload_http" name="test_payload_account_ids_are_exact_strings[edges-s]" time="0.002" /><testcase classname="tests.test_payload_http" name="test_payload_account_ids_are_exact_strings[edges-t]" time="0.002" /><testcase classname="tests.test_payload_http" name="test_payload_account_ids_are_exact_strings[top-gid]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_payload_account_ids_are_exact_strings[formations-breaking_point_gid]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_payload_account_ids_are_exact_strings[formation_members-gid]" time="0.003" /><testcase classname="tests.test_payload_http" name="test_payload_account_ids_are_exact_strings[node_completeness-gid]" time="0.002" /><testcase classname="tests.test_payload_http" name="test_payload_account_ids_are_exact_strings[echoes-gid]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_nested_ids_in_timeline_and_echoes" time="0.003" /><testcase classname="tests.test_payload_http" name="test_graph_counts" time="0.000" /><testcase classname="tests.test_payload_http" name="test_node_layout_and_scores_in_range[y]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_node_layout_and_scores_in_range[priority]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_node_layout_and_scores_in_range[roleScore]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_node_positions_unique_within_hop" time="0.001" /><testcase classname="tests.test_payload_http" name="test_payload_daily_totals" time="0.003" /><testcase classname="tests.test_payload_http" name="test_payload_formation_membership" time="0.308" /><testcase classname="tests.test_payload_http" name="test_http_serves_public_assets[/web/]" time="0.003" /><testcase classname="tests.test_payload_http" name="test_http_serves_public_assets[/web/index.html]" time="0.002" /><testcase classname="tests.test_payload_http" name="test_http_serves_public_assets[/web/i18n.js]" time="0.002" /><testcase classname="tests.test_payload_http" name="test_http_serves_public_assets[/web/replay.js]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_http_serves_public_assets[/web/echoes.js]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_http_serves_public_assets[/out/graph.json]" time="0.003" /><testcase classname="tests.test_payload_http" name="test_http_serves_public_assets[/out/nodes_roles.csv]" time="0.008" /><testcase classname="tests.test_payload_http" name="test_http_serves_public_assets[/out/formations.csv]" time="0.005" /><testcase classname="tests.test_payload_http" name="test_http_serves_public_assets[/out/echoes.csv]" time="0.002" /><testcase classname="tests.test_payload_http" name="test_http_entry_redirect[/]" time="0.002" /><testcase classname="tests.test_payload_http" name="test_http_entry_redirect[/web]" time="0.002" /><testcase classname="tests.test_payload_http" name="test_http_entry_redirect[/index.html]" time="0.002" /><testcase classname="tests.test_payload_http" name="test_http_does_not_expose_repository[/run.py]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_http_does_not_expose_repository[/AGENTS.md]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_http_does_not_expose_repository[/.env]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_http_does_not_expose_repository[/.git/config]" time="0.002" /><testcase classname="tests.test_payload_http" name="test_http_does_not_expose_repository[/data/nodes.parquet]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_http_does_not_expose_repository[/web/../run.py]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_http_does_not_expose_repository[/web/%2e%2e/run.py]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_http_does_not_expose_repository[/out/%2e%2e/requirements.txt]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_http_does_not_expose_repository[/web/missing.js]" time="0.001" /><testcase classname="tests.test_payload_http" name="test_http_custom_output_mount" time="0.022" /><testcase classname="tests.test_payload_http" name="test_http_head" time="0.002" /><testcase classname="tests.test_payload_http" name="test_http_query_string" time="0.016" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[nodes_roles]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[clusters]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[top_nodes]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[formations]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[formation_members]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[completeness]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[next_data_request]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[timeline]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[echoes]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[cycles]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[reciprocal_pairs]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[resilience]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_exists_and_has_rows[pagerank_vs_evidence]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_schema[nodes_roles]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_schema[clusters]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_schema[top_nodes]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_schema[formations]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_schema[formation_members]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_schema[completeness]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_output_schema[next_data_request]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_schema[timeline]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_schema[echoes]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_schema[cycles]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_schema[reciprocal_pairs]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_schema[resilience]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_output_schema[pagerank_vs_evidence]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_scores_finite_and_bounded[nodes_roles-role_score]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_scores_finite_and_bounded[nodes_roles-priority_score]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_scores_finite_and_bounded[formations-score]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_scores_finite_and_bounded[formations-kzt_retained_share]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_scores_finite_and_bounded[completeness-confidence]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_scores_finite_and_bounded[echoes-score]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_scores_finite_and_bounded[reciprocal_pairs-returned_share]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_explanations_nonempty[nodes_roles-evidence-200]" time="0.004" /><testcase classname="tests.test_pipeline" name="test_explanations_nonempty[echoes-evidence-200]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_explanations_nonempty[completeness-limitation-200]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_explanations_nonempty[formations-evidence-220]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_explanations_nonempty[clusters-hypothesis-None]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_explanations_nonempty[formations-hypothesis-None]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_explanations_nonempty[formation_members-member_evidence-None]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_explanations_nonempty[top_nodes-why-None]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_explanations_nonempty[next_data_request-why-None]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_unique_identifiers[nodes_roles-gid]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_unique_identifiers[completeness-gid]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_unique_identifiers[top_nodes-gid]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_unique_identifiers[clusters-cluster_id]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_unique_identifiers[formations-formation_id]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_unique_identifiers[echoes-echo_id]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_all_declared_nodes_preserved[nodes_roles]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_all_declared_nodes_preserved[completeness]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_rank_order[top_nodes-priority_score]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_rank_order[formations-score]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_top_list_references_actual_nodes" time="0.003" /><testcase classname="tests.test_pipeline" name="test_runtime" time="0.000" /><testcase classname="tests.test_pipeline" name="test_application_files_not_modified" time="0.000" /><testcase classname="tests.test_pipeline" name="test_isolated_seeds_are_not_dropped" time="0.003" /><testcase classname="tests.test_pipeline" name="test_node_metrics_against_raw_aggregation[in_deg]" time="0.005" /><testcase classname="tests.test_pipeline" name="test_node_metrics_against_raw_aggregation[out_deg]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_node_metrics_against_raw_aggregation[in_kzt]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_node_metrics_against_raw_aggregation[out_kzt]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_node_metrics_against_raw_aggregation[in_tx]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_node_metrics_against_raw_aggregation[out_tx]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_cluster_measurements[n_nodes]" time="0.019" /><testcase classname="tests.test_pipeline" name="test_cluster_measurements[n_seed]" time="0.018" /><testcase classname="tests.test_pipeline" name="test_cluster_measurements[sum_kzt_internal]" time="0.057" /><testcase classname="tests.test_pipeline" name="test_cluster_measurements[top_gids]" time="0.019" /><testcase classname="tests.test_pipeline" name="test_formation_measurements[n_members]" time="0.264" /><testcase classname="tests.test_pipeline" name="test_formation_measurements[n_seeds]" time="0.261" /><testcase classname="tests.test_pipeline" name="test_formation_measurements[breaking_point_gid]" time="0.257" /><testcase classname="tests.test_pipeline" name="test_formation_measurements[kzt_through]" time="0.516" /><testcase classname="tests.test_pipeline" name="test_formation_measurements[min_hop_from_seed]" time="0.357" /><testcase classname="tests.test_pipeline" name="test_no_duplicate_membership" time="0.001" /><testcase classname="tests.test_pipeline" name="test_no_orphan_membership" time="0.003" /><testcase classname="tests.test_pipeline" name="test_no_duplicate_formations" time="0.145" /><testcase classname="tests.test_pipeline" name="test_cycle_paths_and_amounts[length]" time="0.017" /><testcase classname="tests.test_pipeline" name="test_cycle_paths_and_amounts[min_leg_kzt]" time="0.024" /><testcase classname="tests.test_pipeline" name="test_cycle_paths_and_amounts[total_kzt]" time="0.024" /><testcase classname="tests.test_pipeline" name="test_reciprocal_pairs_complete_and_correct" time="0.003" /><testcase classname="tests.test_pipeline" name="test_resilience_against_independent_graph_removal" time="0.159" /><testcase classname="tests.test_pipeline" name="test_timeline_conserves_raw_data[sum_kzt]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_timeline_conserves_raw_data[n_tx]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_timeline_exact_daily_groups" time="0.008" /><testcase classname="tests.test_pipeline" name="test_committed_outputs_match_fresh_calculation[nodes_roles.csv]" time="0.015" /><testcase classname="tests.test_pipeline" name="test_committed_outputs_match_fresh_calculation[clusters.csv]" time="0.004" /><testcase classname="tests.test_pipeline" name="test_committed_outputs_match_fresh_calculation[top_nodes.csv]" time="0.002" /><testcase classname="tests.test_pipeline" name="test_committed_outputs_match_fresh_calculation[formations.csv]" time="0.009" /><testcase classname="tests.test_pipeline" name="test_committed_outputs_match_fresh_calculation[graph.json]" time="0.032" /><testcase classname="tests.test_pipeline" name="test_committed_outputs_match_fresh_calculation[timeline.csv]" time="0.010" /><testcase classname="tests.test_pipeline" name="test_committed_outputs_match_fresh_calculation[echoes.csv]" time="0.006" /><testcase classname="tests.test_pipeline" name="test_repeatability_across_hash_seeds[nodes_roles.csv]" time="7.577" /><testcase classname="tests.test_pipeline" name="test_repeatability_across_hash_seeds[clusters.csv]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_repeatability_across_hash_seeds[top_nodes.csv]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_repeatability_across_hash_seeds[formations.csv]" time="0.000" /><testcase classname="tests.test_pipeline" name="test_repeatability_across_hash_seeds[graph.json]" time="0.002" /><testcase classname="tests.test_pipeline" name="test_repeatability_across_hash_seeds[echoes.csv]" time="0.001" /><testcase classname="tests.test_pipeline" name="test_cli_exit_contract[args0]" time="0.665" /><testcase classname="tests.test_pipeline" name="test_cli_exit_contract[args1]" time="0.739" /><testcase classname="tests.test_pipeline" name="test_cli_exit_contract[args2]" time="0.705" /><testcase classname="tests.test_robustness" name="test_missing_required_file_rejected[nodes.parquet]" time="0.030" /><testcase classname="tests.test_robustness" name="test_missing_required_file_rejected[edges.parquet]" time="0.011" /><testcase classname="tests.test_robustness" name="test_missing_required_file_rejected[transactions.parquet]" time="0.013" /><testcase classname="tests.test_robustness" name="test_missing_required_column_rejected[nodes-gid]" time="0.014" /><testcase classname="tests.test_robustness" name="test_missing_required_column_rejected[nodes-depth]" time="0.013" /><testcase classname="tests.test_robustness" name="test_missing_required_column_rejected[nodes-is_seed]" time="0.014" /><testcase classname="tests.test_robustness" name="test_missing_required_column_rejected[edges-src]" time="0.013" /><testcase classname="tests.test_robustness" name="test_missing_required_column_rejected[edges-dst]" time="0.014" /><testcase classname="tests.test_robustness" name="test_missing_required_column_rejected[edges-sum_kzt]" time="0.015" /><testcase classname="tests.test_robustness" name="test_missing_required_column_rejected[edges-n_tx]" time="0.014" /><testcase classname="tests.test_robustness" name="test_missing_required_column_rejected[tx-date]" time="0.013" /><testcase classname="tests.test_robustness" name="test_malformed_data_rejected_before_analysis[duplicate_nodes]" time="0.014"><failure message="Failed: DID NOT RAISE (&lt;class 'ValueError'&gt;, &lt;class 'TypeError'&gt;, &lt;class 'AssertionError'&gt;)">synthetic = &lt;function synthetic.&lt;locals&gt;.make at 0x10f99b2e0&gt;
+tmp_path = PosixPath('/private/var/folders/9v/tnc_k0yj4b7gvq_rhc03405m0000gn/T/pytest-of-karinashalya/pytest-2/test_malformed_data_rejected_b0')
+mutation = 'duplicate_nodes'
+
+    @pytest.mark.parametrize('mutation',['duplicate_nodes','undeclared_endpoint','negative_amount','null_gid',
+     'negative_depth','duplicate_edges','nonboolean_seed'])
+    def test_malformed_data_rejected_before_analysis(synthetic,tmp_path,mutation):
+        d=synthetic([(1,2,'2026-07-01',10000)])
+        if mutation=='duplicate_nodes': d.nodes=pd.concat([d.nodes,d.nodes.iloc[[0]]],ignore_index=True)
+        if mutation=='undeclared_endpoint': d.edges.loc[0,'dst']=999
+        if mutation=='negative_amount': d.edges.loc[0,'sum_kzt']=-10000
+        if mutation=='null_gid': d.nodes['gid']=d.nodes.gid.astype(float); d.nodes.loc[0,'gid']=float('nan')
+        if mutation=='negative_depth': d.nodes.loc[0,'depth']=-1
+        if mutation=='duplicate_edges': d.edges=pd.concat([d.edges,d.edges],ignore_index=True)
+        if mutation=='nonboolean_seed': d.nodes['is_seed']=['False','True']
+        write_data(d,tmp_path)
+&gt;       with pytest.raises((ValueError,TypeError,AssertionError)): dataio.load(tmp_path)
+E       Failed: DID NOT RAISE (&lt;class 'ValueError'&gt;, &lt;class 'TypeError'&gt;, &lt;class 'AssertionError'&gt;)
+
+tests/test_robustness.py:47: Failed</failure></testcase><testcase classname="tests.test_robustness" name="test_malformed_data_rejected_before_analysis[undeclared_endpoint]" time="0.015"><failure message="Failed: DID NOT RAISE (&lt;class 'ValueError'&gt;, &lt;class 'TypeError'&gt;, &lt;class 'AssertionError'&gt;)">synthetic = &lt;function synthetic.&lt;locals&gt;.make at 0x10fe10180&gt;
+tmp_path = PosixPath('/private/var/folders/9v/tnc_k0yj4b7gvq_rhc03405m0000gn/T/pytest-of-karinashalya/pytest-2/test_malformed_data_rejected_b1')
+mutation = 'undeclared_endpoint'
+
+    @pytest.mark.parametrize('mutation',['duplicate_nodes','undeclared_endpoint','negative_amount','null_gid',
+     'negative_depth','duplicate_edges','nonboolean_seed'])
+    def test_malformed_data_rejected_before_analysis(synthetic,tmp_path,mutation):
+        d=synthetic([(1,2,'2026-07-01',10000)])
+        if mutation=='duplicate_nodes': d.nodes=pd.concat([d.nodes,d.nodes.iloc[[0]]],ignore_index=True)
+        if mutation=='undeclared_endpoint': d.edges.loc[0,'dst']=999
+        if mutation=='negative_amount': d.edges.loc[0,'sum_kzt']=-10000
+        if mutation=='null_gid': d.nodes['gid']=d.nodes.gid.astype(float); d.nodes.loc[0,'gid']=float('nan')
+        if mutation=='negative_depth': d.nodes.loc[0,'depth']=-1
+        if mutation=='duplicate_edges': d.edges=pd.concat([d.edges,d.edges],ignore_index=True)
+        if mutation=='nonboolean_seed': d.nodes['is_seed']=['False','True']
+        write_data(d,tmp_path)
+&gt;       with pytest.raises((ValueError,TypeError,AssertionError)): dataio.load(tmp_path)
+E       Failed: DID NOT RAISE (&lt;class 'ValueError'&gt;, &lt;class 'TypeError'&gt;, &lt;class 'AssertionError'&gt;)
+
+tests/test_robustness.py:47: Failed</failure></testcase><testcase classname="tests.test_robustness" name="test_malformed_data_rejected_before_analysis[negative_amount]" time="0.014"><failure message="Failed: DID NOT RAISE (&lt;class 'ValueError'&gt;, &lt;class 'TypeError'&gt;, &lt;class 'AssertionError'&gt;)">synthetic = &lt;function synthetic.&lt;locals&gt;.make at 0x10f998180&gt;
+tmp_path = PosixPath('/private/var/folders/9v/tnc_k0yj4b7gvq_rhc03405m0000gn/T/pytest-of-karinashalya/pytest-2/test_malformed_data_rejected_b2')
+mutation = 'negative_amount'
+
+    @pytest.mark.parametrize('mutation',['duplicate_nodes','undeclared_endpoint','negative_amount','null_gid',
+     'negative_depth','duplicate_edges','nonboolean_seed'])
+    def test_malformed_data_rejected_before_analysis(synthetic,tmp_path,mutation):
+        d=synthetic([(1,2,'2026-07-01',10000)])
+        if mutation=='duplicate_nodes': d.nodes=pd.concat([d.nodes,d.nodes.iloc[[0]]],ignore_index=True)
+        if mutation=='undeclared_endpoint': d.edges.loc[0,'dst']=999
+        if mutation=='negative_amount': d.edges.loc[0,'sum_kzt']=-10000
+        if mutation=='null_gid': d.nodes['gid']=d.nodes.gid.astype(float); d.nodes.loc[0,'gid']=float('nan')
+        if mutation=='negative_depth': d.nodes.loc[0,'depth']=-1
+        if mutation=='duplicate_edges': d.edges=pd.concat([d.edges,d.edges],ignore_index=True)
+        if mutation=='nonboolean_seed': d.nodes['is_seed']=['False','True']
+        write_data(d,tmp_path)
+&gt;       with pytest.raises((ValueError,TypeError,AssertionError)): dataio.load(tmp_path)
+E       Failed: DID NOT RAISE (&lt;class 'ValueError'&gt;, &lt;class 'TypeError'&gt;, &lt;class 'AssertionError'&gt;)
+
+tests/test_robustness.py:47: Failed</failure></testcase><testcase classname="tests.test_robustness" name="test_malformed_data_rejected_before_analysis[null_gid]" time="0.016" /><testcase classname="tests.test_robustness" name="test_malformed_data_rejected_before_analysis[negative_depth]" time="0.015"><failure message="Failed: DID NOT RAISE (&lt;class 'ValueError'&gt;, &lt;class 'TypeError'&gt;, &lt;class 'AssertionError'&gt;)">synthetic = &lt;function synthetic.&lt;locals&gt;.make at 0x10f998ae0&gt;
+tmp_path = PosixPath('/private/var/folders/9v/tnc_k0yj4b7gvq_rhc03405m0000gn/T/pytest-of-karinashalya/pytest-2/test_malformed_data_rejected_b4')
+mutation = 'negative_depth'
+
+    @pytest.mark.parametrize('mutation',['duplicate_nodes','undeclared_endpoint','negative_amount','null_gid',
+     'negative_depth','duplicate_edges','nonboolean_seed'])
+    def test_malformed_data_rejected_before_analysis(synthetic,tmp_path,mutation):
+        d=synthetic([(1,2,'2026-07-01',10000)])
+        if mutation=='duplicate_nodes': d.nodes=pd.concat([d.nodes,d.nodes.iloc[[0]]],ignore_index=True)
+        if mutation=='undeclared_endpoint': d.edges.loc[0,'dst']=999
+        if mutation=='negative_amount': d.edges.loc[0,'sum_kzt']=-10000
+        if mutation=='null_gid': d.nodes['gid']=d.nodes.gid.astype(float); d.nodes.loc[0,'gid']=float('nan')
+        if mutation=='negative_depth': d.nodes.loc[0,'depth']=-1
+        if mutation=='duplicate_edges': d.edges=pd.concat([d.edges,d.edges],ignore_index=True)
+        if mutation=='nonboolean_seed': d.nodes['is_seed']=['False','True']
+        write_data(d,tmp_path)
+&gt;       with pytest.raises((ValueError,TypeError,AssertionError)): dataio.load(tmp_path)
+E       Failed: DID NOT RAISE (&lt;class 'ValueError'&gt;, &lt;class 'TypeError'&gt;, &lt;class 'AssertionError'&gt;)
+
+tests/test_robustness.py:47: Failed</failure></testcase><testcase classname="tests.test_robustness" name="test_malformed_data_rejected_before_analysis[duplicate_edges]" time="0.014"><failure message="Failed: DID NOT RAISE (&lt;class 'ValueError'&gt;, &lt;class 'TypeError'&gt;, &lt;class 'AssertionError'&gt;)">synthetic = &lt;function synthetic.&lt;locals&gt;.make at 0x10f999940&gt;
+tmp_path = PosixPath('/private/var/folders/9v/tnc_k0yj4b7gvq_rhc03405m0000gn/T/pytest-of-karinashalya/pytest-2/test_malformed_data_rejected_b5')
+mutation = 'duplicate_edges'
+
+    @pytest.mark.parametrize('mutation',['duplicate_nodes','undeclared_endpoint','negative_amount','null_gid',
+     'negative_depth','duplicate_edges','nonboolean_seed'])
+    def test_malformed_data_rejected_before_analysis(synthetic,tmp_path,mutation):
+        d=synthetic([(1,2,'2026-07-01',10000)])
+        if mutation=='duplicate_nodes': d.nodes=pd.concat([d.nodes,d.nodes.iloc[[0]]],ignore_index=True)
+        if mutation=='undeclared_endpoint': d.edges.loc[0,'dst']=999
+        if mutation=='negative_amount': d.edges.loc[0,'sum_kzt']=-10000
+        if mutation=='null_gid': d.nodes['gid']=d.nodes.gid.astype(float); d.nodes.loc[0,'gid']=float('nan')
+        if mutation=='negative_depth': d.nodes.loc[0,'depth']=-1
+        if mutation=='duplicate_edges': d.edges=pd.concat([d.edges,d.edges],ignore_index=True)
+        if mutation=='nonboolean_seed': d.nodes['is_seed']=['False','True']
+        write_data(d,tmp_path)
+&gt;       with pytest.raises((ValueError,TypeError,AssertionError)): dataio.load(tmp_path)
+E       Failed: DID NOT RAISE (&lt;class 'ValueError'&gt;, &lt;class 'TypeError'&gt;, &lt;class 'AssertionError'&gt;)
+
+tests/test_robustness.py:47: Failed</failure></testcase><testcase classname="tests.test_robustness" name="test_malformed_data_rejected_before_analysis[nonboolean_seed]" time="0.016"><failure message="Failed: DID NOT RAISE (&lt;class 'ValueError'&gt;, &lt;class 'TypeError'&gt;, &lt;class 'AssertionError'&gt;)">synthetic = &lt;function synthetic.&lt;locals&gt;.make at 0x10f99a340&gt;
+tmp_path = PosixPath('/private/var/folders/9v/tnc_k0yj4b7gvq_rhc03405m0000gn/T/pytest-of-karinashalya/pytest-2/test_malformed_data_rejected_b6')
+mutation = 'nonboolean_seed'
+
+    @pytest.mark.parametrize('mutation',['duplicate_nodes','undeclared_endpoint','negative_amount','null_gid',
+     'negative_depth','duplicate_edges','nonboolean_seed'])
+    def test_malformed_data_rejected_before_analysis(synthetic,tmp_path,mutation):
+        d=synthetic([(1,2,'2026-07-01',10000)])
+        if mutation=='duplicate_nodes': d.nodes=pd.concat([d.nodes,d.nodes.iloc[[0]]],ignore_index=True)
+        if mutation=='undeclared_endpoint': d.edges.loc[0,'dst']=999
+        if mutation=='negative_amount': d.edges.loc[0,'sum_kzt']=-10000
+        if mutation=='null_gid': d.nodes['gid']=d.nodes.gid.astype(float); d.nodes.loc[0,'gid']=float('nan')
+        if mutation=='negative_depth': d.nodes.loc[0,'depth']=-1
+        if mutation=='duplicate_edges': d.edges=pd.concat([d.edges,d.edges],ignore_index=True)
+        if mutation=='nonboolean_seed': d.nodes['is_seed']=['False','True']
+        write_data(d,tmp_path)
+&gt;       with pytest.raises((ValueError,TypeError,AssertionError)): dataio.load(tmp_path)
+E       Failed: DID NOT RAISE (&lt;class 'ValueError'&gt;, &lt;class 'TypeError'&gt;, &lt;class 'AssertionError'&gt;)
+
+tests/test_robustness.py:47: Failed</failure></testcase><testcase classname="tests.test_robustness" name="test_input_rows_not_mutated_by_feature_build" time="0.234" /><testcase classname="tests.test_robustness" name="test_role_independent_of_dataframe_index" time="1.855" /><testcase classname="tests.test_robustness" name="test_cluster_no_negative_or_missing_members" time="0.001" /><testcase classname="tests.test_robustness" name="test_known_formation_patterns[funnel]" time="0.051" /><testcase classname="tests.test_robustness" name="test_known_formation_patterns[fan_out]" time="0.050" /><testcase classname="tests.test_robustness" name="test_known_formation_patterns[reciprocal_loop]" time="0.044" /><testcase classname="tests.test_robustness" name="test_known_formation_patterns[chain]" time="0.049" /><testcase classname="tests.test_robustness" name="test_breaking_point_known_graphs[chain]" time="0.007" /><testcase classname="tests.test_robustness" name="test_breaking_point_known_graphs[funnel]" time="0.008" /><testcase classname="tests.test_robustness" name="test_breaking_point_known_graphs[reciprocal_loop]" time="0.007" /><testcase classname="tests.test_robustness" name="test_breaking_point_known_graphs[bridge]" time="0.007" /><testcase classname="tests.test_robustness" name="test_full_completeness_matches_states_and_confidence" time="0.156" /><testcase classname="tests.test_robustness" name="test_server_symlink_cannot_escape_mount" time="0.797" /></testsuite></testsuites>
