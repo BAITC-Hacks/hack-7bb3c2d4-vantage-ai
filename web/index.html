@@ -395,7 +395,7 @@ function createMap(canvas, opts) {
     const seen = new Set([id, ...in1, ...out1]);
     const ring = (ids, map, key) => { const r = []; for (const p of ids) for (const e of byKzt(map.get(p) || [], key)) if (!seen.has(e)) { seen.add(e); r.push(e); } return take(r); };
     const in2 = ring(in1, incoming, "s"), out2 = ring(out1, outgoing, "t");
-    const cols = [in2, in1, [id], out1, out2], padL = 70, padR = 70, top = 40, bottom = H - 30, step = (W - padL - padR) / 4;
+    const cols = [in2, in1, [id], out1, out2], padL = W < 480 ? 34 : 70, padR = W < 480 ? 34 : 70, top = 40, bottom = H - 30, step = (W - padL - padR) / 4;
     cols.forEach((ids, i) => spread(ids, padL + step * i, top, bottom));
     const set = new Set(pos.keys()); drawnEdges = D.edges.filter(e => set.has(e.s) && set.has(e.t));
     return { in1: in1.length, out1: out1.length, both };
@@ -411,7 +411,7 @@ function createMap(canvas, opts) {
   }
   function layoutAll() {
     pos.clear(); hidden = 0;
-    const padL = 88, padR = 80, top = 34, bottom = H - 24;
+    const padL = W < 480 ? 40 : 88, padR = W < 480 ? 36 : 80, top = 34, bottom = H - 24;
     for (const n of D.nodes) {
       const jig = ((+String(n.id).slice(-4) % 997) / 997 - .5), band = Math.min(62, (W - padL - padR) / (maxHop + 1) * .55);
       pos.set(String(n.id), { x: padL + (W - padL - padR) * (n.hop / maxHop) + jig * band, y: top + (bottom - top) * n.y, r: radius(n) });
@@ -433,16 +433,21 @@ function createMap(canvas, opts) {
   function draw() {
     ctx.clearRect(0, 0, W, H); ctx.font = "13px " + css("body"); ctx.textAlign = "center";
     const hl = highlight(), all = M.view === "all";
+    const narrow = W < 480, allPadL = narrow ? 40 : 88, allPadR = narrow ? 36 : 80, nearPad = narrow ? 34 : 70;
+    const hopText = h => narrow ? String(h) : hopLabel(h);
+    const labelY = (i, base) => narrow ? (i % 2 ? 30 : 14) : base;
+    if (narrow) ctx.font = "11px " + css("body");
     if (all) for (let h = 0; h <= maxHop; h++) {
-      const x = 88 + (W - 168) * (h / maxHop);
+      const x = allPadL + (W - allPadL - allPadR) * (h / maxHop);
       ctx.strokeStyle = css("grid"); ctx.beginPath(); ctx.moveTo(x, 26); ctx.lineTo(x, H - 24); ctx.stroke();
-      ctx.fillStyle = css("grid-label"); ctx.fillText(hopLabel(h), x, 18);
+      ctx.fillStyle = css("grid-label"); ctx.fillText(hopText(h), x, labelY(h, 18));
     } else if (M.focus?.type === "node") {
       (W < 900 ? ["2 hops in", "paid it", "this one", "paid by it", "2 hops out"] : ["paid the payers", "paid this account", "this account", "were paid by it", "were paid next"])
-        .forEach((s, i) => { ctx.fillStyle = css("grid-label"); ctx.fillText(t(s), 70 + (W - 140) / 4 * i, 22); });
+        .forEach((s, i) => { ctx.fillStyle = css("grid-label"); ctx.fillText(t(s), nearPad + (W - nearPad * 2) / 4 * i, labelY(i, 22)); });
     } else if (M.focus?.type === "form" && M.layoutInfo) {
-      M.layoutInfo.forEach((h, i, arr) => { ctx.fillStyle = css("grid-label"); ctx.fillText(hopLabel(h), arr.length > 1 ? 70 + (W - 140) / (arr.length - 1) * i : W / 2, 22); });
+      M.layoutInfo.forEach((h, i, arr) => { ctx.fillStyle = css("grid-label"); ctx.fillText(hopText(h), arr.length > 1 ? 70 + (W - 140) / (arr.length - 1) * i : W / 2, labelY(i, 22)); });
     }
+    if (narrow) ctx.font = "13px " + css("body");
     const dim = hl.nodes.size > 0;
     for (const e of drawnEdges) {
       const a = pos.get(e.s), b = pos.get(e.t); if (!a || !b) continue;

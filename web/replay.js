@@ -247,7 +247,7 @@ export function mountReplay(container, D, api) {
 
   function layout() {
     pos.clear();
-    const padL = 88, padR = 80, top = 34, bottom = H - 24;
+    const padL = W < 480 ? 40 : 88, padR = W < 480 ? 36 : 80, top = 34, bottom = H - 24;
     const band = Math.min(62, (W - padL - padR) / (maxHop + 1) * .55);
     for (const n of D.nodes) {
       const id = String(n.id);
@@ -303,10 +303,11 @@ export function mountReplay(container, D, api) {
 
     // column labels
     ctx.font = `11px ${MONO}`; ctx.fillStyle = MUTED; ctx.textAlign = "center"; ctx.textBaseline = "top";
-    const padL = 88, padR = 80;
+    const narrow = W < 480, padL = narrow ? 40 : 88, padR = narrow ? 36 : 80;
     for (let h = 0; h <= maxHop; h++) {
       const x = padL + (W - padL - padR) * (h / maxHop);
-      ctx.fillText(h === 0 ? s("knownClients") : _fill(s("hop"), { n: h }), x, 10);
+      const label = narrow ? String(h) : (h === 0 ? s("knownClients") : _fill(s("hop"), { n: h }));
+      ctx.fillText(label, x, narrow ? (h % 2 ? 22 : 8) : 10);
     }
 
     // inactive nodes, dim
