@@ -81,6 +81,20 @@ Everything below is the evidence for the claims above, criterion by criterion.
 
 ---
 
+## Why this matters to a bank, and to the state
+
+**Today.** The case specification describes the analyst's position (`docs/case-spec-full.txt`, lines 479 to 489): only the bottom of the chain is known, who collects and controls the money is reconstructed by hand, at hours of analyst work per account, and review priority is decided by intuition. By the time the picture is drawn, the organisers have rebuilt their infrastructure, within days.
+
+**Monday morning, with this output.** The 2,248 accounts become 25 priority targets (`out/top_nodes.csv`) and 653 linked groups, each naming the one account whose removal breaks it (`out/formations.csv`). The first group alone moves 12,684,846 KZT through four accounts and rests on `100000003684369100`. Acting on the top 20 accounts leaves 1,917 of the 2,248 still reachable from the listed accounts, down from 2,248 (`out/resilience.csv`, rows for 0 and 20 removed): a measured effect, not an assumed one. The first item of the data request resolves 444 accounts and 56,672,165 KZT with one more hop (`out/next_data_request.csv`, row 1). The specification's own impact statement is weeks of manual tracing to minutes (line 491); this run takes about one second (`python3 run.py`).
+
+**What a ranked list or a generic graph tool does not give.** Three facts. It acts on groups, not names, because freezing one account of twelve leaves eleven running. It declines to label 558 accounts the data cannot support, 444 at the crawl boundary and 114 with too few transfers, and each row says why (`out/nodes_roles.csv`, `evidence` column). It reports the blind spot as a number: 40,445,011 KZT arrived at the listed accounts from payers nobody recorded (`src/moneygraph/completeness.py`, printed by `run.py`), and it writes the request that would close it.
+
+**Where it sits in the Kazakh process.** The case is set by a second-tier bank's financial monitoring function (line 493). Its output, by the specification's user flow, is a list of customers for in-depth review and a request to law enforcement (lines 495 to 499). `out/next_data_request.csv` is that request, written by the pipeline and ranked by what each item resolves, so the bank asks the financial monitoring authority for a specific hop, from specific accounts, with the amount it illuminates, rather than for "more data".
+
+**What comes next.** The approach at one million accounts is set out under "Scaling" below, and `docs/COMPLETENESS.md` states what one further hop from the 444 boundary accounts would resolve. Both are text, as the specification asks; neither is claimed as built.
+
+---
+
 ## Compliance and functionality
 
 Every mandatory requirement, where it is met, and how to check it.
