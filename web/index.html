@@ -190,6 +190,17 @@ canvas.map{display:block;width:100%;height:34rem;cursor:default}
 .ask .w{font-size:.875rem;color:var(--text);line-height:1.45;margin-top:.3rem}
 .ask .f{font-size:.8125rem;color:var(--muted);margin-top:.3rem}
 .ask .f b{color:var(--fg);font-family:var(--mono);font-weight:400}
+.hero{display:grid;grid-template-columns:1.5fr 1fr;gap:1rem;margin:0 0 1.4rem}
+.hero>div{border:1px solid var(--line);border-radius:var(--r-xl);background:var(--panel);overflow:hidden;min-width:0}
+.hero .cap{padding:.55rem .9rem .6rem;font-size:.8125rem;color:var(--muted);border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap}
+.hero .cap b{color:var(--fg);font-weight:600}
+.hero .side{padding:.9rem 1rem 0}
+.spark svg{display:block;width:100%;height:5.5rem}
+.spark .cap{border-top:0;padding-left:0;padding-right:0}
+.pn{display:flex;justify-content:space-between;gap:.5rem;margin:0 0 .8rem}
+.pn a{display:inline-flex;align-items:center;height:2rem;padding:0 .7rem;border:1px solid var(--line);border-radius:var(--r-md);background:var(--sunk);font-size:.8125rem;font-weight:600;color:var(--text)}
+.pn a:hover{background:var(--strong);color:var(--fg)}
+.pn a[aria-disabled=true]{opacity:.35;pointer-events:none}
 .module{min-height:20rem}
 .boot{padding:3rem;font-size:1rem;color:var(--muted);line-height:1.6}
 
@@ -200,7 +211,7 @@ canvas.map{display:block;width:100%;height:34rem;cursor:default}
   .rail a[aria-current=true]{box-shadow:inset 0 -2px 0 var(--amber)}
   .rail a small,.rail .foot{display:none}
   main{margin-top:0}
-  .explore,.grid2{grid-template-columns:1fr}
+  .explore,.grid2,.hero{grid-template-columns:1fr}
   section.page{padding:1.4rem 1.2rem 3rem}
   .find input{width:11rem}
   .case{display:none}
@@ -531,7 +542,9 @@ $("view-a").addEventListener("click", e => { const b = e.target.closest("button[
 function renderAccount(n) {
   const id = String(n.id), k = KNOW.get(id), rk = RANK.get(id);
   const forms = (FORMS_OF.get(id) || []).map(f => FORM_BY_ID.get(f)).filter(Boolean).sort((a, b) => a.rank - b.rank);
+  const prev = rk ? TOP[rk.rank - 2] : null, next = rk ? TOP[rk.rank] : null;
   $("panel-a").innerHTML = `
+    ${rk ? `<div class="pn"><a href="#account/${prev ? esc(prev.gid) : ""}" aria-disabled="${!prev}">← #${prev ? prev.rank : ""}</a><span class="empty" style="align-self:center">${t("priority")} #${rk.rank}</span><a href="#account/${next ? esc(next.gid) : ""}" aria-disabled="${!next}">#${next ? next.rank : ""} →</a></div>` : ""}
     <div class="k">${t("This account")}</div><div class="gid">${esc(id)}</div>${n.seed ? `<div style="margin-top:.3rem"><span class="pill" style="--pc:var(--amber)">${t("known client")}</span></div>` : ""}
     <p class="sentence">${sub(t("Received <b>{in}</b> from {a} and sent <b>{out}</b> to {b} in July."), { in: kzt(n.inKzt), a: plural(n.inDeg, "account", "accounts"), out: kzt(n.outKzt), b: plural(n.outDeg, "account", "accounts") })}</p>
     <div class="k">${t("Assessed as")}</div>
@@ -626,12 +639,29 @@ else $("mod-replay").innerHTML = `<p class="empty">${t("This section's module is
 if (echoesMod?.mountEchoes) { try { echoesMod.mountEchoes($("mod-echoes"), D, api); echoFacts = echoesMod.echoFacts?.(D) ?? null; } catch (e) { console.error(e); $("mod-echoes").innerHTML = `<p class="empty">${t("This section could not start:")} ${esc(e.message)}</p>`; } }
 else $("mod-echoes").innerHTML = `<p class="empty">${t("This section's module is not present in this build.")}</p>`;
 
+/* A 31-bar strip of daily KZT for the overview; the busiest day is the one amber bar. */
+function sparkSvg() {
+  const days = Array.isArray(D.days) ? D.days : [];
+  if (!days.length) return `<p class="empty">${t("Not generated in this run.")}</p>`;
+  const max = Math.max(...days.map(d => d.kzt)) || 1, w = 10, g = 2, H = 60;
+  const busiest = days.reduce((a, b) => b.kzt > a.kzt ? b : a);
+  return `<svg viewBox="0 0 ${days.length * (w + g)} ${H + 14}" preserveAspectRatio="none" role="img">${days.map((d, i) => {
+    const h = Math.max(2, Math.round(d.kzt / max * H));
+    return `<rect x="${i * (w + g)}" y="${H - h}" width="${w}" height="${h}" rx="1.5" fill="${d === busiest ? "var(--amber)" : "var(--steel)"}" opacity="${d === busiest ? 1 : .55}"><title>${esc(dateWord(d.date))}: ${kzt(d.kzt)}</title></rect>`;
+  }).join("")}<text x="0" y="${H + 12}" font-size="9" fill="var(--muted)">1</text><text x="${days.length * (w + g) - 12}" y="${H + 12}" font-size="9" fill="var(--muted)">31</text></svg>`;
+}
 /* ------------------------------ 01 start ------------------------------ */
 {
   const g = D.integrity || {}, lead = TOP.slice(0, 3), forms = FORMS.slice(0, 3);
   $("p-start").innerHTML = `
     <div class="ph"><i>01</i><h2>${t("The case in one screen")}</h2></div>
     <p class="lede">${sub(t("Law enforcement named <b>{n} accounts</b> at the bottom of a chain. A crawl followed their outbound transfers for four hops through July 2026. This tool reads what the crawl brought back and answers one question: <b>which of these accounts should an analyst look at first, and why.</b>"), { n: D.meta.seeds })}</p>
+    <div class="hero">
+      <div><canvas class="map" id="cv-o" style="height:17rem"></canvas>
+        <div class="cap"><span><b>${fmt(D.meta.nodes)}</b> ${t("accounts, coloured by role. Listed accounts on the left, then each transfer further to the right.")}</span><a class="go" href="#account" style="margin:0">${t("Open the map")}</a></div></div>
+      <div class="side spark"><h3 class="sec">${t("KZT transferred per day, July 2026")}</h3>${sparkSvg()}
+        <div class="cap"><span>${replayFacts?.busiestDay ? `<b>${esc(dateWord(replayFacts.busiestDay.date))}</b> · ${kzt(replayFacts.busiestDay.kzt)}` : ""}</span><a class="go" href="#replay" style="margin:0">${t("Transfers by day")}</a></div></div>
+    </div>
     <div class="ledger">
       <div><b>${fmt(D.meta.seeds)}</b><span>${t("known clients, where the crawl began")}</span></div>
       <div><b>${fmt(D.meta.nodes)}</b><span>${t("accounts reached in four hops")}</span></div>
@@ -657,6 +687,8 @@ else $("mod-echoes").innerHTML = `<p class="empty">${t("This section's module is
         <div class="fact"><b>${fmt(g.dead_ends_truncated_depth4 ?? 0)}</b><span>${t("accounts where the crawl stopped rather than the money.")} <a class="go" href="#limits">${t("Where the data runs out")}</a></span></div>
       </div>
     </div>`;
+  const mapO = createMap($("cv-o"), {});
+  mapO.view = "all"; mapO.focus = null; mapO.update();
 }
 
 /* ------------------------------ routing ------------------------------ */
