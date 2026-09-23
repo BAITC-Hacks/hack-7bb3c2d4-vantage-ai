@@ -458,3 +458,17 @@ Nothing below is built. It is the deployment path, stated so that a reader can j
 **What would be added before service.** Access control and an audit log of who opened which account; retention and deletion rules for case folders; a signed release of the rule thresholds with a change history; a check of the extract's schema at intake with a rejection report; and a test suite run against each new extract, of which `tests/` and `qa/independent/` are the start.
 
 **Who it serves.** The second-tier bank's financial monitoring function that the case specification describes (`docs/case-spec-full.txt`, lines 493 to 499), the authority that receives its reports, and the law enforcement unit that supplies the list and receives the request. The same output file serves all three, which is the point: one computed request instead of three separately drafted ones.
+
+### How it would integrate with the state's existing process
+
+The integration points are the two files at each end, which is deliberate: an authority can adopt a tool that reads one format and writes one format without changing its systems.
+
+**Intake.** Banks already produce transaction extracts for the financial monitoring authority on request. The three-file format this pipeline reads (`docs/DATASET-README.md`) is a plain description of an account list, a transfer list and a transaction list; a bank's compliance system can produce it from its existing reporting, and the same format works for every bank, so the authority can run one job over extracts from several banks and see a group that spans them.
+
+**Output into case management.** The three required files, `nodes_roles.csv`, `clusters.csv` and `top_nodes.csv`, plus `formations.csv`, are flat tables with an account id in every row. They load into the authority's case management system as they are, and each row carries its evidence, so the case record shows why an account was flagged without a link back to this tool.
+
+**The request as an inter-agency document.** `next_data_request.csv` ranks the extracts to ask for next, with the accounts it resolves and the amount it illuminates. That is the content of the authority's request to the bank, or to another agency, in a form that can be sent, tracked and answered, and answered extracts feed the next run.
+
+**Shared rules across institutions.** Because every role is a numeric threshold in one file (`src/moneygraph/roles.py`), the authority can publish the thresholds it accepts and every bank applies the same rules to its own data before reporting, which makes reports from different banks comparable. A change to a threshold is a change to one line with a written reason beside it, which is how a regulator prefers rules to be kept.
+
+**Data stays in the country and in the institution.** No external service is called at any stage, so the tool can run inside a bank, inside the authority, or in the state cloud, and the extract need only move as far as the law already allows it to move.
