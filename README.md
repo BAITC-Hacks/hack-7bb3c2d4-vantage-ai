@@ -2,7 +2,7 @@
 
 # Money Graph
 
-### An investigator is handed 81 accounts and 2,248 leads. This tells them where to act first, and what the data cannot show them.
+### An analyst is handed 81 accounts and a crawl of 2,248. This tells them where to act first, what to ask for next, and what the data cannot show them.
 
 **HackAlem AI 2026 · Track 02 · Freedom**
 
@@ -12,10 +12,6 @@
 
 </div>
 
-![The investigator's funnel: 81 names given, 2,248 accounts crawled, 653 structures found, 25 priority targets, one breaking point per structure](docs/img/journey.png)
-
-*81 names given, 2,248 accounts crawled, 653 structures found, 25 priority targets, and one breaking point per structure.*
-
 ```
 pip install -r requirements.txt
 python3 run.py              # about a second, fifteen files in out/
@@ -23,36 +19,65 @@ python3 run.py --serve      # then open http://localhost:8000/web/
 ```
 
 **Live:** https://money-graph.pages.dev (the same screen, served as a static site; `./deploy.sh` republishes it).
-
 No API key. No network. No database. No build step. Five pinned dependencies.
 
----
+## The situation on the analyst's desk
 
-## The problem, from the investigator's chair
+A financial monitoring analyst receives 81 flagged accounts from law enforcement and a crawl that
+followed their outbound transfers four hops out through July 2026. The crawl comes back with
+2,248 accounts and 4,840 transfers, 365,890,012 KZT of movement. The analyst has days, not weeks,
+to say what the structure is, who holds it together, and where to spend the first week.
 
-A financial monitoring team flags 81 accounts. A crawl follows their outbound transfers four hops
-out through July 2026 and comes back with 2,248 accounts, 3,119 transfer relationships and
-365,890,012 KZT of movement. The team needs to know what that structure is, who holds it together,
-and where to spend the next week.
+The obvious answer is a ranked list of suspicious accounts. A rank is a name. Freeze one account in
+a group of twelve and the other eleven carry on.
 
-A ranked list of suspicious accounts does not answer that. A rank is a name. Freeze one account in a
-group of twelve and the other eleven carry on.
+![The investigator's funnel: 81 names given, 2,248 accounts crawled, 653 structures found, 25 priority targets, one breaking point per structure](docs/img/journey.png)
 
-## What this hands over instead
+*81 names given, 2,248 accounts crawled, 653 structures found, 25 priority targets, and one breaking point per structure.*
 
-**Structures, each with its breaking point.** The 2,248 accounts are grouped into 653 formations:
-funnels, chains, loops, fan-outs and bridges. Every one names the single member whose removal breaks
-it, and by how much. That is an instruction, not a score.
+## What the analyst does with it on Monday morning
 
-**A priority list that was tested, not asserted.** Remove the top 20 and 311 further accounts fall out
-of reach of the money trail. That number comes from removing them and recounting.
+1. **Act on the breaking point of the top funnel.** Row 1 of `out/formations.csv` is a funnel of
+   4 accounts carrying 12,684,846 KZT. Three payers send a dominant share of their outflow into
+   account …369100, and removing that one account cuts all three off
+   (`breaking_point_method` = articulation, `breaking_point_effect` = 3). One case, not four.
+2. **Send the ranked data request.** Row 1 of `out/next_data_request.csv` asks for one more crawl hop
+   from the 444 accounts at the depth limit; that single request resolves 444 accounts and
+   56,672,165 KZT whose onward path is unrecorded. Rows 2 to 4 are costed the same way.
+3. **Open the live case file and type any account id.** The screen at
+   https://money-graph.pages.dev/web/ returns one sentence: the role, the rule that fired and its
+   numbers, money in and out, hop from a listed account, and the accounts around it on a map.
 
-**The honest edge of the map.** The crawl followed money outward, so whoever funds the 81 seeds was
-never followed. 40,445,011 KZT arrived at the seeds from a payer nobody recorded. The system says so,
-puts a number on it, and tells the team what to ask for next, ranked by what each request would buy.
+## The edge of the map, as a number
 
-**It declines to guess.** 558 accounts get no behavioural role because the crawl does not support one.
-Each of those rows says why in its own evidence field.
+The crawl followed money outward only. Whoever funds the 81 flagged accounts was never followed, so
+they are absent from the data by construction. The 81 sent out 55,294,178 KZT; only 14,849,167 KZT
+was seen arriving. **40,445,011 KZT arrived with no recorded payer.** The system states that as a
+computed output (`src/moneygraph/completeness.py`, `out/next_data_request.csv` row 3, section 07 of
+the screen) rather than drawing a controller it cannot see.
+
+## How this differs, in three checkable facts
+
+| Instead of | This hands over | Where |
+|---|---|---|
+| Ranked accounts | 653 structures, each naming the one member whose removal breaks it and by how much | `out/formations.csv`, columns `breaking_point_gid`, `breaking_point_effect` |
+| A label for every row | Abstention on 558 accounts where the crawl gives no basis for a role, 444 at the depth limit and 114 with fewer than three transfers, each row saying why | `out/nodes_roles.csv`, roles `abstained_boundary` and `abstained_single_observation` |
+| A caveat in a footnote | The blind spot and the next data request as ranked outputs with KZT figures | `out/completeness.csv`, `out/next_data_request.csv` |
+
+On the screen the same things are labelled in plain words: the 81 seeds are "listed accounts",
+a breaking point is the "key account", and formations are "linked account groups" (`web/i18n.js`).
+
+## Where each rubric criterion is met
+
+| Criterion | Fact | Proof |
+|---|---|---|
+| Compliance and functionality | The three fixed-schema CSVs (2,248 roles, 91 clusters, 25 priority rows) plus a review screen with search by id, asserted before exit | `out/nodes_roles.csv`, `out/clusters.csv`, `out/top_nodes.csv`, `web/index.html`, `run.py`; table below |
+| Technical implementation | Eight named rules with thresholds in one dict, zero model calls; breaking points by articulation point and dominator analysis; HITS made deterministic | `src/moneygraph/roles.py:44`, `src/moneygraph/formations.py:394` and `:510`, `src/moneygraph/features.py:34` |
+| README and reproducibility | Two commands, about one second, fifteen files byte-identical to the committed `out/`, five dependencies pinned to exact versions | `requirements.txt`, `run.py`, `out/` |
+| Value and applicability | Top formation recomputed by hand from the raw parquet to its score of 0.6944; data requests costed in accounts and KZT | `docs/FORMATIONS.md`, `out/next_data_request.csv` |
+| Development potential and originality | Structures with breaking points, abstention as an output, the blind spot quantified at 40,445,011 KZT | `src/moneygraph/formations.py`, `src/moneygraph/roles.py`, `src/moneygraph/completeness.py:94` |
+
+Everything below is the evidence for the claims above, criterion by criterion.
 
 ---
 
