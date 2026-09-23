@@ -70,7 +70,11 @@ def _pyify(obj):
         return int(obj)
     if isinstance(obj, (float, np.floating)):
         f = float(obj)
-        return f if math.isfinite(f) else None
+        # Rounded to six places because a sum of tenge amounts can land on a different last
+        # binary digit depending on the order pandas adds them, which differs between BLAS
+        # builds. Six places is far below any figure the screen shows and keeps graph.json
+        # byte identical across machines.
+        return round(f, 6) if math.isfinite(f) else None
     if obj is None or isinstance(obj, str):
         return obj
     if isinstance(obj, np.str_):
