@@ -71,19 +71,21 @@ b,strong{color:var(--fg);font-weight:600}
 .find input::placeholder{color:var(--steel);font-family:var(--body)}
 .lang{display:inline-flex;gap:2px;padding:3px;border-radius:var(--r-pill);background:var(--sunk);border:1px solid var(--line)}
 .lang button{height:1.8rem;padding:0 .8rem;border-radius:calc(var(--r-pill) - 3px);font-size:.8rem;font-weight:700;color:var(--muted)}
-.lang button[aria-pressed=true]{background:var(--amber);color:#0B0C0D}
+.lang button{border:2px solid transparent}
+.lang button[aria-pressed=true]{background:var(--amber-soft);border-color:var(--amber);color:var(--fg)}
 .theme{height:2.2rem;padding:0 .9rem;border:1px solid var(--line);border-radius:var(--r-pill);font-size:.75rem;font-weight:500;color:var(--text);background:var(--sunk)}
 .theme:hover{background:var(--strong)}
 
 .rail{position:fixed;top:var(--top);bottom:0;left:0;width:var(--rail);border-right:1px solid var(--line);background:var(--bg);
       padding:.6rem .5rem;overflow:auto;display:flex;flex-direction:column;gap:2px}
-.rail a{display:grid;grid-template-columns:1.6rem 1fr;align-items:baseline;gap:.5rem;padding:.7rem .9rem;color:var(--text);border-radius:var(--r-pill)}
+.rail a{display:grid;grid-template-columns:1.6rem 1fr;align-items:baseline;gap:.5rem;padding:.6rem .8rem;color:var(--text);border-radius:var(--r-pill);border:2px solid transparent}
 .rail a i{font:700 .75rem/1 var(--mono);font-style:normal;color:var(--steel)}
 .rail a span{font-size:.95rem;font-weight:700;line-height:1.25;color:var(--fg)}
 .rail a small{grid-column:2;font-size:.75rem;color:var(--steel);font-weight:400;line-height:1.3}
 .rail a:hover{background:var(--strong)}
-.rail a[aria-current=true]{background:var(--amber);color:#0B0C0D;box-shadow:none}
-.rail a[aria-current=true] span,.rail a[aria-current=true] i,.rail a[aria-current=true] small{color:#0B0C0D}
+.rail a[aria-current=true]{background:var(--amber-soft);border-color:var(--amber);box-shadow:none}
+.rail a[aria-current=true] span{color:var(--fg)}
+.rail a[aria-current=true] i{color:var(--amber)}
 .rail .foot{margin-top:auto;padding:1rem .6rem 0;font-size:.7rem;color:var(--steel);line-height:1.5}
 
 main{margin:var(--top) 0 0 var(--rail);min-height:calc(100vh - var(--top))}
@@ -98,10 +100,10 @@ hr.rule{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
 
 /* ------------------------------ ledger figures ------------------------------ */
 .ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;margin:0 0 1.8rem}
-.ledger div{padding:1.1rem 1.3rem 1rem;background:var(--panel)}
+.ledger div{padding:1.1rem 1.3rem 1rem;background:var(--panel);border-top:4px solid var(--lc,var(--line))}
 .ledger b{display:block;font:700 2.9rem/1.05 var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--fg)}
-.ledger .amber{background:var(--amber)}
-.ledger .amber b,.ledger .amber span{color:#0B0C0D}
+.ledger .amber{--lc:var(--amber)}
+.ledger .amber b{color:var(--amber)}
 .ledger span{display:block;color:var(--muted);font-size:.78rem;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-top:.45rem;line-height:1.35}
 
 /* ------------------------------ start cards ------------------------------ */
@@ -147,8 +149,8 @@ td.num{font-family:var(--mono)}
 .mapbar .what{font-weight:600;font-size:.875rem;flex:1;min-width:12rem;color:var(--fg)}
 .mapbar .what span{color:var(--muted);font-weight:400}
 .seg{display:inline-flex;padding:3px;gap:2px;background:var(--sunk);border:1px solid var(--line);border-radius:var(--r-pill)}
-.seg button{font:700 .8125rem/1 var(--body);padding:7px 14px;border-radius:calc(var(--r-pill) - 3px);color:var(--muted)}
-.seg button[aria-pressed=true]{background:var(--amber);color:#0B0C0D}
+.seg button{font:700 .8125rem/1 var(--body);padding:5px 12px;border-radius:calc(var(--r-pill) - 3px);color:var(--muted);border:2px solid transparent}
+.seg button[aria-pressed=true]{background:var(--amber-soft);border-color:var(--amber);color:var(--fg)}
 canvas.map{display:block;width:100%;height:34rem;cursor:default}
 .legend{display:flex;flex-wrap:wrap;gap:.2rem .4rem;padding:.5rem .9rem;border-top:1px solid var(--line);background:var(--panel);font-size:.8125rem;color:var(--muted)}
 .legend span{display:flex;align-items:center;gap:.35rem;cursor:help;padding:.1rem .4rem;border-radius:var(--r-sm)}
@@ -197,8 +199,8 @@ canvas.map{display:block;width:100%;height:34rem;cursor:default}
 .dash .t .l{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .dash .t .v{font:700 1.9rem/1.1 var(--display);letter-spacing:-.03em;color:var(--fg);font-variant-numeric:tabular-nums;margin-top:.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dash .t .s{font-size:.8125rem;color:var(--muted);margin-top:.25rem}
-.dash .t.hot{background:var(--amber);border-color:var(--amber)}
-.dash .t.hot .l,.dash .t.hot .v,.dash .t.hot .s{color:#0B0C0D}
+.dash .t.hot{background:var(--amber-soft);border:2px solid var(--amber)}
+.dash .t.hot .v{color:var(--amber)}
 .dash .t.role{border-left:5px solid var(--pc)}
 .hero{display:grid;grid-template-columns:1.5fr 1fr;gap:1rem;margin:0 0 1.4rem}
 .hero>div{border:1px solid var(--line);border-radius:var(--r-xl);background:var(--panel);overflow:hidden;min-width:0}
@@ -681,12 +683,12 @@ function sparkSvg() {
         <div class="cap"><span>${replayFacts?.busiestDay ? `<b>${esc(dateWord(replayFacts.busiestDay.date))}</b> · ${kzt(replayFacts.busiestDay.kzt)}` : ""}</span><a class="go" href="#replay" style="margin:0">${t("Transfers by day")}</a></div></div>
     </div>
     <div class="ledger">
-      <div><b>${fmt(D.meta.seeds)}</b><span>${t("known clients, where the crawl began")}</span></div>
-      <div><b>${fmt(D.meta.nodes)}</b><span>${t("accounts reached in four hops")}</span></div>
-      <div><b>${fmt(D.meta.edges)}</b><span>${t("transfer relationships")}, ${kzt(D.meta.turnover)}</span></div>
+      <div style="--lc:var(--fg)"><b>${fmt(D.meta.seeds)}</b><span>${t("known clients, where the crawl began")}</span></div>
+      <div style="--lc:var(--transit)"><b>${fmt(D.meta.nodes)}</b><span>${t("accounts reached in four hops")}</span></div>
+      <div style="--lc:var(--distributor)"><b>${fmt(D.meta.edges)}</b><span>${t("transfer relationships")}, ${kzt(D.meta.turnover)}</span></div>
       <div class="amber"><b>${fmt(TOP.length)}</b><span>${t("accounts to review first")}</span></div>
-      <div><b>${fmt(FORMS.length)}</b><span>${t("structures that only make sense read together")}</span></div>
-      <div><b>${fmt(abstained)}</b><span>${t("accounts not judged, because the data does not support a judgement")}</span></div>
+      <div style="--lc:var(--coordinator)"><b>${fmt(FORMS.length)}</b><span>${t("structures that only make sense read together")}</span></div>
+      <div style="--lc:var(--abstained_boundary)"><b>${fmt(abstained)}</b><span>${t("accounts not judged, because the data does not support a judgement")}</span></div>
     </div>
     <div class="grid2">
       <div>
